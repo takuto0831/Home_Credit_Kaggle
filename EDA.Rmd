@@ -21,7 +21,7 @@ output:
 
 - application_{train|test}.csv (122|121 variables)
     - Key variable: SK_ID_CURR
-    - Objective variable: TARGET(1:返済困難, 0: other)
+    - Objective variable: TARGET(1:返済困難, 0: other, 連続値)
     - About: 全てのアプリケーションのデータ
 - bureau.csv (17 variables)
     - Key variable: SK_ID_CURR, SK_ID_BUREAU 
@@ -50,7 +50,11 @@ output:
     - データ内の課題発見
     - データの特性発見
 - データ前処理
-- Kernelを参考に, xgboostなどを実行してみる
+    - 欠損値補完
+    - 重要なカラムの選択
+    - 特徴量抽出
+- Kernel sample
+    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
 - データ分析(後述)
 
 # Setting
