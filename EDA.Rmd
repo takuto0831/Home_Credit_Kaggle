@@ -1,0 +1,16 @@
+---
+title: "Home Credit Dafault Risk (EDA)"
+author: "kotsubo takuto"
+output: 
+    html_document:
+      md_extensions: -ascii_identifiers
+      toc: true
+      toc_depth: 3
+---
+
+# 概要
+
+- 多くの人々は, クレジット履歴の不足や欠如により, ローン契約に奮闘している.
+そして不幸なことにこのような人々はしばしば, 信頼できない貸し手を利用している.
+
+- そこでクレジット履歴に代替する, 電気通信会社や取引情報などを用いて, 対象者の返済能力を予測する.
