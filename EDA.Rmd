@@ -65,7 +65,7 @@ output:
 rm(list = ls())
 ```
 
-```{r set up}
+```{r set up, message=FALSE}
 # set directory
 setwd("~/Desktop/Home_Credit_Kaggle/") 
 # max.print 
