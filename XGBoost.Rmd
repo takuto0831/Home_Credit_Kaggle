@@ -8,4 +8,78 @@ output:
       toc_depth: 3
 ---
 
-# 
+# Home Credit Dafault Risk
+
+## To do list
+
+- 少数データにより xgboost model 構築
+    - モデルを理解する
+- EDAと並行して, Tuning等を行い精度を高める
+
+## 参考サイト
+
+- [xgboostに関する参考サイト](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
+
+# Setting
+
+## knitr option
+
+```{r reset, include=FALSE}
+# 初期化
+rm(list = ls())
+```
+
+```{r set up, message=FALSE}
+# set directory
+setwd("~/Desktop/Home_Credit_Kaggle/") 
+# max.print 
+options(max.print="100", digits=5)
+# Global options
+library(knitr)
+opts_chunk$set(echo=TRUE,
+               cache = TRUE,
+	             prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+## Library package
+
+- 必要なパッケージを適宜追加
+
+```{r package, message=FALSE}
+library(tidyverse)
+library(readr) # for csv
+library(xgboost)
+library(caret)
+```
+
+## Load funciton
+
+
+## read csv
+
+```{r}
+# xgboost character 扱えない??
+# mutate_if(is.character, funs(factor(.) %>% as.integer())) 
+
+# 訓練データ, テストデータ
+application_test <- read_csv("csv/application_test.csv")
+application_train <- read_csv("csv/application_train.csv")
+
+# クレジット利用履歴 (by Credit Bureau)
+bureau <- read_csv("csv/bureau.csv")
+bureau_balance <- read_csv("csv/bureau_balance.csv")
+
+# 過去の利用データ
+previous_application <- read_csv("csv/previous_application.csv")
+installments_payments <- read_csv("csv/installments_payments.csv")
+POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv")
+credit_card_balance <- read_csv("csv/credit_card_balance.csv")
+
+# submit style file
+# sample_submission <- read_csv("csv/sample_submission.csv")
+```
