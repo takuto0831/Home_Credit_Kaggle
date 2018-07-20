@@ -53,15 +53,16 @@ output:
     - 欠損値補完
     - 重要なカラムの選択
     - 特徴量抽出
-- Kernel sample
-    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
+- Kernel sampl
+    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/) : xgboostではキャルクター扱えない??
 - データ分析(後述)
 
 # Setting
 
 ## knitr option
 
-```{r reset}
+```{r reset, include=FALSE}
+# 初期化
 rm(list = ls())
 ```
 
@@ -84,7 +85,9 @@ opts_knit$set(width=75)
 
 ## Library package
 
-```{r message=FALSE}
+- 必要なパッケージを適宜追加
+
+```{r package, message=FALSE}
 library(tidyverse)
 library(readr) # for csv
 library(summarytools) # summary easily for EDA
