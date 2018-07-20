@@ -83,3 +83,46 @@ credit_card_balance <- read_csv("csv/credit_card_balance.csv")
 # submit style file
 # sample_submission <- read_csv("csv/sample_submission.csv")
 ```
+
+# XGBoost
+
+## caret package + xgboost package
+
+- `application_train`のデータを利用して, xgboostを実装
+
+```{r}
+application_train %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  
+```
+
+## grid search
+
+- 10分割交差検証法
+
+```{r}
+#trainControlを設定
+ctrl <- trainControl(method = "cv",   
+                     number = 10,
+                     selectionFunction = "best")
+
+#格子探索用のグリッド
+grid <- expand.grid(nrounds = 500, 
+                    eta = seq(0.01, 0.4, 0.01), 
+                    max_depth = 4:10,
+                    gamma = 0,
+                    colsample_bytree = 1,
+                    min_child_weight = 1,
+                    subsample = 1)
+
+#XGboostでパラメタチューニング
+xgb.tune <- train(TARGET ~ .,
+                  data = application_train,
+                  method = "xgbTree",
+                  metric = "Accuracy",
+                  trControl = ctrl,
+                  tuneGrid = grid)
+```
+
+
+
