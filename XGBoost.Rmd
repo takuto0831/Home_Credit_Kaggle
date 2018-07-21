@@ -55,6 +55,7 @@ library(tidyverse)
 library(readr) # for csv
 library(xgboost)
 library(caret)
+library(DT)
 ```
 
 ## Load funciton
@@ -86,43 +87,102 @@ credit_card_balance <- read_csv("csv/credit_card_balance.csv")
 
 # XGBoost
 
-## caret package + xgboost package
+- caret package + xgboost packageによる実装
+
+## Preprocessing 
 
 - `application_train`のデータを利用して, xgboostを実装
 
 ```{r}
-application_train %>% 
-  mutate_if(is.character, funs(factor(.))) %>% 
-  
+# train data
+train_data <- application_train %>% 
+  select(-SK_ID_CURR) %>% 
+  mutate_if(is.character, funs(factor(.)))
+
+# test data
+test_data <- application_test %>% 
+  # select(SK_ID_CURR,CODE_GENDER,FLAG_OWN_CAR,FLAG_OWN_REALTY,FLAG_MOBIL) %>% 
+  mutate_if(is.character, funs(factor(.)))
 ```
 
-## grid search
+## xgboost
 
 - 10分割交差検証法
 
 ```{r}
-#trainControlを設定
-ctrl <- trainControl(method = "cv",   
-                     number = 10,
-                     selectionFunction = "best")
+# xgboost fitting with arbitrary parameters
+xgb_params = list(
+  objective = "binary:logistic",                                              # binary classification
+  booster = "gbtree",
+  eval_metric = "auc",
+  nthread = 4,
+  eta = 0.05,
+  max_depth = 6,
+  min_child_weight = 30,
+  gamma = 0,
+  subsample = 0.85,
+  colsample_bytree = 0.7,
+  colsample_bylevel = 0.632,
+  alpha = 0,
+  lambda = 0
+)
 
-#格子探索用のグリッド
-grid <- expand.grid(nrounds = 500, 
-                    eta = seq(0.01, 0.4, 0.01), 
-                    max_depth = 4:10,
-                    gamma = 0,
-                    colsample_bytree = 1,
-                    min_child_weight = 1,
-                    subsample = 1)
+# xgboost cross validation to choice best parameter
+xgb_cv <- 
+  xgb.cv(data = data.matrix(train_data %>% 
+                             select(-TARGET)),
+         label = train_data$TARGET,
+         params = xgb_params,
+         missing = NA,
+         nfold = 10, 
+         nrounds = 1000,
+         verbose = TRUE,
+         prediction = TRUE,                                           # return the prediction using the final model 
+         showsd = TRUE,                                               # standard deviation of loss across folds
+         stratified = TRUE, 
+         print_every_n = 1,
+         early_stopping_rounds = 10 )
 
-#XGboostでパラメタチューニング
-xgb.tune <- train(TARGET ~ .,
-                  data = application_train,
-                  method = "xgbTree",
-                  metric = "Accuracy",
-                  trControl = ctrl,
-                  tuneGrid = grid)
+#xgboost 
+xgb_test <- 
+  xgboost(data = data.matrix(train_data %>% 
+                             select(-TARGET)),
+          label = train_data$TARGET,
+          params = xgb_params,
+          nrounds = xgb_cv$niter+1, # max number of trees to build
+          verbose = TRUE,                                         
+          print.every.n = 1,
+          early.stop.round = 10 )
 ```
 
+## predict
 
+```{r}
+# 重要なパラメータの可視化
+xgb.importance(model = xgb_test) %>% 
+  xgb.plot.importance(top_n = 30)
+
+# 予測関数
+pred_test <- predict(xgb_test,data.matrix(test_data %>% select(-SK_ID_CURR)))
+```
+
+## make Submit file
+
+```{r}
+# submit file の構築
+submit <- data.frame(test_data,TARGET = pred_test) %>% 
+  select(SK_ID_CURR,TARGET)
+# 結果の確認
+DT::datatable(submit,rownames = FALSE)
+``` 
+
+## export csv 
+
+```{r}
+# file name + submit date
+file_name <- "test-submit-xgb"
+path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
+# export
+write_csv(submit,path = path_name)
+```
 
