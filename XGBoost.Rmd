@@ -14,11 +14,19 @@ output:
 
 - 少数データにより xgboost model 構築
     - モデルを理解する
-- EDAと並行して, Tuning等を行い精度を高める
+- XGBoostについて
+    - xgboostの各種パラメータおよび, cvにおける意義を考える
+    - 並列処理できるのか
+- EDAについて
+    - 必要なパラメータの選択
+    - まとめられるパラメータの選択
+    - 新たな特徴量の作成
 
 ## 参考サイト
 
 - [xgboostに関する参考サイト](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
+- [xgboostにおけるクロスバリデーション](http://puyokw.hatenablog.com/entry/2015/04/29/000557)
+- [xgboostの欠損値処理について](https://medium.com/rv-data/missing-data-xgboost-and-r-part-2-9e47924d935a)
 
 # Setting
 
@@ -151,8 +159,8 @@ xgb_test <-
           params = xgb_params,
           nrounds = xgb_cv$niter+1, # max number of trees to build
           verbose = TRUE,                                         
-          print.every.n = 1,
-          early.stop.round = 10 )
+          print_every_n = 1,
+          early_stopping_rounds = 10 )
 ```
 
 ## predict
