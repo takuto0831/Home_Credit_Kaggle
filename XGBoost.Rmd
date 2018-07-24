@@ -77,18 +77,26 @@ library(DT)
 # mutate_if(is.character, funs(factor(.) %>% as.integer())) 
 
 # 訓練データ, テストデータ
-application_test <- read_csv("csv/application_test.csv")
-application_train <- read_csv("csv/application_train.csv")
+application_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+    mutate_if(is.character, funs(factor(.)))
+application_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.)))
 
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("csv/bureau.csv")
-bureau_balance <- read_csv("csv/bureau_balance.csv")
+bureau <- read_csv("csv/bureau.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+bureau_balance <- read_csv("csv/bureau_balance.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
 
 # 過去の利用データ
-previous_application <- read_csv("csv/previous_application.csv")
-installments_payments <- read_csv("csv/installments_payments.csv")
-POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv")
-credit_card_balance <- read_csv("csv/credit_card_balance.csv")
+previous_application <- read_csv("csv/previous_application.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+installments_payments <- read_csv("csv/installments_payments.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+credit_card_balance <- read_csv("csv/credit_card_balance.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
 
 # submit style file
 # sample_submission <- read_csv("csv/sample_submission.csv")
@@ -106,13 +114,10 @@ credit_card_balance <- read_csv("csv/credit_card_balance.csv")
 ```{r}
 # train data
 train_data <- application_train %>% 
-  select(-SK_ID_CURR) %>% 
-  mutate_if(is.character, funs(factor(.)))
+  select(-SK_ID_CURR)
 
 # test data
-test_data <- application_test %>% 
-  # select(SK_ID_CURR,CODE_GENDER,FLAG_OWN_CAR,FLAG_OWN_REALTY,FLAG_MOBIL) %>% 
-  mutate_if(is.character, funs(factor(.)))
+test_data <- application_test
 ```
 
 ## `xgbosst` pacakge
@@ -192,7 +197,7 @@ DT::datatable(submit,rownames = FALSE)
 
 ```{r}
 # file name + submit date
-file_name <- "test-submit-xgb"
+file_name <- "easy-preprocess-xgb"
 path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
 # export
 write_csv(submit,path = path_name)
