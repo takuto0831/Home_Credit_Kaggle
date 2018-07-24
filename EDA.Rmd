@@ -52,7 +52,7 @@ output:
 - Set up
     - library package
     - load function
-    - read csv
+    - read csv (前処理一部含む)
 - Preprocessing
     - charcter type -> factor type  
     - Missing values count
@@ -148,6 +148,7 @@ credit_card_balance <- read_csv("csv/credit_card_balance.csv") %>%
 
 ```{r}
 CheckMissingValue(application_train)
+CheckMissingValue(application_test)
 ```
 
 # EDA
