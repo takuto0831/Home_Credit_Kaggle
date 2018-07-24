@@ -44,18 +44,26 @@ output:
     - Key variable: SK_ID_CURR, SK_ID_PREV
     - About: 
 
-# To do list
+# Toc
 
+- About Competition
+    - overview
+    - data description
+- Set up
+    - library package
+    - load function
+    - read csv
+- Preprocessing
+    - charcter type -> factor type  
+    - Missing values count
+    - 重要なカラムの選択
+    - 特徴量抽出
 - EDA
     - データ内の課題発見
     - データの特性発見
-- データ前処理
-    - 欠損値補完
-    - 重要なカラムの選択
-    - 特徴量抽出
-- Kernel sampl
+- Kernel sample
     - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/) : xgboostではキャルクター扱えない??
-- データ分析(後述)
+- Data analysis
 
 # Setting
 
@@ -70,7 +78,7 @@ rm(list = ls())
 # set directory
 setwd("~/Desktop/Home_Credit_Kaggle/") 
 # max.print 
-options(max.print="100", digits=5)
+options(max.print="200", digits=5)
 # Global options
 library(knitr)
 opts_chunk$set(echo=TRUE,
@@ -88,33 +96,58 @@ opts_knit$set(width=75)
 - 必要なパッケージを適宜追加
 
 ```{r package, message=FALSE}
+# install_github("hadley/readr")
 library(tidyverse)
 library(readr) # for csv
 library(summarytools) # summary easily for EDA
+library(GGally) # ggpairs
+library(skimr)
 ```
 
 ## Load funciton
 
+```{r}
+source('~/Desktop/Home_Credit_Kaggle/function/Preprocessing.R') # for preprocessing
+```
 
 ## read csv
 
+- Missing value
+na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する. (application_train のfactor列は確認済み)
+
 ```{r}
 # 訓練データ, テストデータ
-application_test <- read_csv("csv/application_test.csv")
-application_train <- read_csv("csv/application_train.csv")
+application_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+    mutate_if(is.character, funs(factor(.)))
+application_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.)))
 
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("csv/bureau.csv")
-bureau_balance <- read_csv("csv/bureau_balance.csv")
+bureau <- read_csv("csv/bureau.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+bureau_balance <- read_csv("csv/bureau_balance.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
 
 # 過去の利用データ
-previous_application <- read_csv("csv/previous_application.csv")
-installments_payments <- read_csv("csv/installments_payments.csv")
-POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv")
-credit_card_balance <- read_csv("csv/credit_card_balance.csv")
+previous_application <- read_csv("csv/previous_application.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+installments_payments <- read_csv("csv/installments_payments.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
+credit_card_balance <- read_csv("csv/credit_card_balance.csv") %>% 
+  mutate_if(is.character, funs(factor(.)))
 
 # submit style file
 # sample_submission <- read_csv("csv/sample_submission.csv")
+```
+
+# Preprocessing
+
+## Check Missing value
+
+```{r}
+CheckMissingValue(application_train)
 ```
 
 # EDA
@@ -122,14 +155,24 @@ credit_card_balance <- read_csv("csv/credit_card_balance.csv")
 ## Check Summary and missing value
 
 ```{r}
+library(skimr)
+application_train %>% skim() %>% kable()
+application_test %>% skim() %>% kable()
+bureau %>% skim() %>% kable()
+bureau_balance %>% skim() %>% kable()
+previous_application %>% skim() %>% kable()
+installments_payments %>% skim() %>% kable()
+POS_CASH_balance %>% skim() %>% kable()
+credit_card_balance %>% skim() %>% kable()
+```
+
+```{r}
 dfSummary(application_train) %>% 
   view(method = "render")
-
 dfSummary(bureau) %>% 
   view(method = "render")
 dfSummary(bureau_balance) %>% 
   view(method = "render")
-
 dfSummary(previous_application) %>% 
   view(method = "render")
 dfSummary(installments_payments) %>% 
@@ -139,6 +182,29 @@ dfSummary(POS_CASH_balance) %>%
 dfSummary(credit_card_balance) %>% 
   view(method = "render")
 ```
+
+## Relational plot
+
+```{r}
+application_train %>% 
+  select(FLAG_OWN_CAR,FLAG_OWN_REALTY,FLAG_CONT_MOBILE) %>% 
+  ggpairs(upper = list(continuous = wrap("cor", size = 5)),                    
+          lower = list(continuous = "smooth"))
+
+application_train %>% 
+  select(AMT_INCOME_TOTAL,AMT_CREDIT,AMT_ANNUITY,AMT_GOODS_PRICE) %>% 
+  ggpairs(upper = list(continuous = wrap("cor", size = 10)),                    
+          lower = list(continuous = "smooth"))
+
+```
+
+
+```{r}
+application_train[2:6,] %>%
+  select(-SK_ID_CURR) %>% 
+  ggpairs()
+```
+
 
 
 
