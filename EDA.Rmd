@@ -6,6 +6,7 @@ output:
       md_extensions: -ascii_identifiers
       toc: true
       toc_depth: 3
+      code_folding: hide
 ---
 
 # Home Credit Default Risk
@@ -44,7 +45,7 @@ output:
     - Key variable: SK_ID_CURR, SK_ID_PREV
     - About: 
 
-# Toc
+## Toc
 
 - About Competition
     - overview
@@ -56,16 +57,17 @@ output:
 - Preprocessing
     - charcter type -> factor type  
     - Missing values count
-    - 重要なカラムの選択
-    - 特徴量抽出
+    - convert to factor type of binary variable
 - EDA
     - データ内の課題発見
     - データの特性発見
+    - 重要なカラムの選択
+    - 特徴量抽出
 - Kernel sample
     - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/) : xgboostではキャルクター扱えない??
 - Data analysis
 
-# Setting
+# Setting{.tabset .tabset-fade .tabset-pills}
 
 ## knitr option
 
@@ -96,18 +98,17 @@ opts_knit$set(width=75)
 - 必要なパッケージを適宜追加
 
 ```{r package, message=FALSE}
-# install_github("hadley/readr")
 library(tidyverse)
 library(readr) # for csv
 library(summarytools) # summary easily for EDA
 library(GGally) # ggpairs
-library(skimr)
+library(skimr) 
 ```
 
 ## Load funciton
 
-```{r}
-source('~/Desktop/Home_Credit_Kaggle/function/Preprocessing.R') # for preprocessing
+```{r cache=FALSE}
+source('~/Desktop/Home_Credit_Kaggle/script/Preprocessing.R') # for preprocessing
 ```
 
 ## read csv
@@ -115,78 +116,286 @@ source('~/Desktop/Home_Credit_Kaggle/function/Preprocessing.R') # for preprocess
 - Missing value
 na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する. (application_train のfactor列は確認済み)
 
+- convert charcter type into factor type
+
 ```{r}
 # 訓練データ, テストデータ
-application_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
     mutate_if(is.character, funs(factor(.)))
-application_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("csv/bureau.csv") %>% 
+bureau <- read_csv("csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-bureau_balance <- read_csv("csv/bureau_balance.csv") %>% 
+bureau_balance <- read_csv("csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # 過去の利用データ
-previous_application <- read_csv("csv/previous_application.csv") %>% 
+previous_app <- read_csv("csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-installments_payments <- read_csv("csv/installments_payments.csv") %>% 
+install_pay <- read_csv("csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv") %>% 
+pos_cash <- read_csv("csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-credit_card_balance <- read_csv("csv/credit_card_balance.csv") %>% 
+credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # submit style file
 # sample_submission <- read_csv("csv/sample_submission.csv")
 ```
 
-# Preprocessing
+# Preprocess{.tabset .tabset-fade .tabset-pills}
 
-## Check Missing value
+- convert to factor type of binary variable
+- combine all tables
+
+## convert to factor type of binary variable 
 
 ```{r}
-CheckMissingValue(application_train)
-CheckMissingValue(application_test)
+app_train <- app_train %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+app_test <- app_test %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+bureau <- bureau %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+bureau_balance <- bureau_balance %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+previous_app <- previous_app %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+install_pay <- install_pay %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+pos_cash <- pos_cash %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+credit_card <- credit_card %>% 
+  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
 ```
 
-# EDA
-
-## Check Summary and missing value
+## combine all tables
 
 ```{r}
-library(skimr)
-application_train %>% skim() %>% kable()
-application_test %>% skim() %>% kable()
-bureau %>% skim() %>% kable()
-bureau_balance %>% skim() %>% kable()
-previous_application %>% skim() %>% kable()
-installments_payments %>% skim() %>% kable()
-POS_CASH_balance %>% skim() %>% kable()
-credit_card_balance %>% skim() %>% kable()
+
 ```
 
+# Explatory data analysis
+
+- 基礎集計
+- 欠損値の確認
+- uniqueな値の確認
+
+## Check Missing value{.tabset .tabset-fade .tabset-pills}
+
+- 全ての欠損値をNAに置き換えられているか確認する(factor value)
+
+### app_train
+
 ```{r}
-dfSummary(application_train) %>% 
-  view(method = "render")
-dfSummary(bureau) %>% 
-  view(method = "render")
-dfSummary(bureau_balance) %>% 
-  view(method = "render")
-dfSummary(previous_application) %>% 
-  view(method = "render")
-dfSummary(installments_payments) %>% 
-  view(method = "render")
-dfSummary(POS_CASH_balance) %>% 
-  view(method = "render")
-dfSummary(credit_card_balance) %>% 
-  view(method = "render")
+CheckMissingValue(app_train)
+```
+
+### app_test
+
+```{r}
+CheckMissingValue(app_test)
+```
+
+### bureau
+
+```{r}
+CheckMissingValue(bureau)
+```
+
+### bureau_balance
+
+```{r}
+CheckMissingValue(bureau_balance)
+```
+
+### previous_app
+
+```{r}
+CheckMissingValue(previous_app)
+```
+
+### install_pay
+
+```{r}
+CheckMissingValue(install_pay)
+```
+
+### pos_cash
+
+```{r}
+CheckMissingValue(pos_cash)
+```
+
+### credit_card
+
+```{r}
+CheckMissingValue(credit_card)
+```
+
+## glimpse package{.tabset .tabset-fade .tabset-pills}
+
+- check column type each data frame
+
+### app_train
+
+```{r}
+glimpse(app_train)
+```
+
+### app_test
+
+```{r}
+glimpse(app_test)
+```
+
+### bureau
+
+```{r}
+glimpse(bureau)
+```
+
+### bureau_balance
+
+```{r}
+glimpse(bureau_balance)
+```
+
+### previous_app
+
+```{r}
+glimpse(previous_app)
+```
+
+### install_pay
+
+```{r}
+glimpse(install_pay)
+```
+
+### pos_cash
+
+```{r}
+glimpse(pos_cash)
+```
+
+### credit_card
+
+```{r}
+glimpse(credit_card)
+```
+
+## skim package{.tabset .tabset-fade .tabset-pills}
+
+- overview of a data frame
+
+### app_train
+
+```{r}
+skim(app_train) %>% kable()
+```
+
+### app_test
+
+```{r}
+skim(app_test) %>% kable()
+```
+
+### bureau
+
+```{r}
+skim(bureau) %>% kable()
+```
+
+### bureau_balance
+
+```{r}
+skim(bureau_balance) %>% kable()
+```
+
+### previous_app
+
+```{r}
+skim(previous_app) %>% kable()
+```
+
+### install_pay
+
+```{r}
+skim(install_pay) %>% kable()
+```
+
+### pos_cash
+
+```{r}
+skim(pos_cash) %>% kable()
+```
+
+### credit_card
+
+```{r}
+skim(credit_card) %>% kable()
+```
+
+## summarytools package{.tabset .tabset-fade .tabset-pills}
+
+- Summary of data frame (split factor value and numeric value)
+
+### app_train
+
+```{r}
+dfSummarySplit(app_train)
+```
+
+### app_test
+
+```{r}
+dfSummarySplit(app_test)
+```
+
+### bureau
+
+```{r}
+dfSummarySplit(bureau)
+```
+
+### bureau_balance
+
+```{r}
+dfSummarySplit(bureau_balance)
+```
+
+### previous_app
+
+```{r}
+dfSummarySplit(previous_app)
+```
+
+### install_pay
+
+```{r}
+dfSummarySplit(install_pay)
+```
+
+### pos_cash
+
+```{r}
+dfSummarySplit(pos_cash)
+```
+
+### credit_card
+
+```{r}
+dfSummarySplit(credit_card)
 ```
 
 ## Relational plot
 
-```{r}
+- 保留
+
+```{r eval=FALSE}
 application_train %>% 
   select(FLAG_OWN_CAR,FLAG_OWN_REALTY,FLAG_CONT_MOBILE) %>% 
   ggpairs(upper = list(continuous = wrap("cor", size = 5)),                    
@@ -200,7 +409,7 @@ application_train %>%
 ```
 
 
-```{r}
+```{r eval=FALSE}
 application_train[2:6,] %>%
   select(-SK_ID_CURR) %>% 
   ggpairs()
