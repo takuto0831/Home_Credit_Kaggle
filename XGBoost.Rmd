@@ -77,25 +77,25 @@ library(DT)
 # mutate_if(is.character, funs(factor(.) %>% as.integer())) 
 
 # 訓練データ, テストデータ
-application_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
     mutate_if(is.character, funs(factor(.)))
-application_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("csv/bureau.csv") %>% 
+bureau <- read_csv("csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-bureau_balance <- read_csv("csv/bureau_balance.csv") %>% 
+bureau_balance <- read_csv("csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # 過去の利用データ
-previous_application <- read_csv("csv/previous_application.csv") %>% 
+previous_app <- read_csv("csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-installments_payments <- read_csv("csv/installments_payments.csv") %>% 
+install_pay <- read_csv("csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-POS_CASH_balance <- read_csv("csv/POS_CASH_balance.csv") %>% 
+pos_cash <- read_csv("csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-credit_card_balance <- read_csv("csv/credit_card_balance.csv") %>% 
+credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # submit style file
@@ -113,11 +113,11 @@ credit_card_balance <- read_csv("csv/credit_card_balance.csv") %>%
 
 ```{r}
 # train data
-train_data <- application_train %>% 
+train_data <- app_train %>% 
   select(-SK_ID_CURR)
 
 # test data
-test_data <- application_test
+test_data <- app_test
 ```
 
 ## `xgbosst` pacakge
@@ -129,12 +129,12 @@ test_data <- application_test
 ```{r}
 # xgboost fitting with arbitrary parameters
 xgb_params = list(
-  objective = "binary:logistic",                                              # binary classification
+  objective = "binary:logistic", # binary classification
   booster = "gbtree",
   eval_metric = "auc",
   nthread = 4,
   eta = 0.05,
-  max_depth = 10,
+  max_depth = 6,
   min_child_weight = 30,
   gamma = 0,
   subsample = 0.85,
@@ -163,9 +163,8 @@ xgb_cv <-
 xgb_test <- 
   xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
                              label = train_data$TARGET),
-          label = train_data$TARGET,
           params = xgb_params,
-          nrounds = xgb_cv$niter, # max number of trees to build
+          nrounds = xgb_cv$best_iteration, # max number of trees to build
           verbose = TRUE,                                         
           print_every_n = 5,
           early_stopping_rounds = 50 )
@@ -196,7 +195,8 @@ DT::datatable(submit,rownames = FALSE)
 
 ```{r}
 # file name + submit date
-file_name <- "easy-preprocess-xgb"
+file_name <- "easy-preprocess-xgb-max-iter-"
+file_name <- "easy-preprocess-xgb-best-iter-"
 path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
 # export
 write_csv(submit,path = path_name)
@@ -212,6 +212,7 @@ trControl <- trainControl(method="cv",
                           number=5, 
                           allowParallel = TRUE,
                           verboseIter = TRUE)
+
 xgbGrid <- expand.grid(
   nrounds=c(350),
   max_depth = c(4, 6),
@@ -225,12 +226,17 @@ xgbGrid <- expand.grid(
 cl <- makeCluster(detectCores()) 
 registerDoParallel(cl)
 
-model_xgb <- train(factor(TARGET) ~ ., 
-                   data = data.matrix(train_data), 
+## factor(TARGET) -> classifiacation
+## TARGET -> regression
+model_xgb <- train(TARGET ~ ., 
+                   data = data.matrix(train_data[1:100,]), 
                    na.action = na.pass, # 欠損値に対する処理
                    trControl=trControl, 
                    method='xgbTree', 
+                   objective = "binary:logistic",
                    tuneGrid = xgbGrid);
+
+
 stopCluster(cl)
 # result
 print(model_xgb)
