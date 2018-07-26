@@ -103,6 +103,9 @@ library(readr) # for csv
 library(summarytools) # summary easily for EDA
 library(GGally) # ggpairs
 library(skimr) 
+library(missForest)
+library(imputeMissings)
+library(doParallel)
 ```
 
 ## Load funciton
@@ -171,6 +174,16 @@ pos_cash <- pos_cash %>%
   mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
 credit_card <- credit_card %>% 
   mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
+```
+
+## impute missing values
+
+- using random forest for numeric value
+- for factor value ??
+
+```{r}
+app_train_imp <- ImputeMissingValueRF(app_train)
+app_test_imp <- ImputeMissingValueRF(app_test)
 ```
 
 ## combine all tables
