@@ -152,7 +152,9 @@ credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN"
 
 ## convert to factor type of binary variable 
 
-```{r}
+- xgboost でエラー起きる. 保留
+
+```{r eval=FALSE}
 app_train <- app_train %>% 
   mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
 app_test <- app_test %>% 
