@@ -178,13 +178,13 @@ credit_card <- credit_card %>%
 
 ## impute missing values
 
-- using random forest for numeric value
-- for factor value ??
+- using random forest for categorical value and factor value 
+- using multiple imputations for numerical value
 
 連続値に対する処理きつい？？
 
 ```{r}
-app_train_imp <- ImputeMissingValueRF(app_train)
+app_train_imp <- ImputeMissingValueRF(app_train[1:10000,])
 app_test_imp <- ImputeMissingValueRF(app_test)
 ```
 
