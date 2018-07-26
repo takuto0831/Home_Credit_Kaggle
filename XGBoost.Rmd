@@ -111,14 +111,23 @@ credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN"
 
 - `application_train`のデータを利用して, xgboostを実装
 
-```{r}
+```{r normal data}
 # train data
 train_data <- app_train %>% 
   select(-SK_ID_CURR)
-
 # test data
 test_data <- app_test
 ```
+
+```{r impute data}
+# train data
+train_data <- app_train_imp %>% 
+  select(-SK_ID_CURR)
+
+# test data
+test_data <- app_test_imp
+```
+
 
 ## `xgbosst` pacakge
 
@@ -195,8 +204,7 @@ DT::datatable(submit,rownames = FALSE)
 
 ```{r}
 # file name + submit date
-file_name <- "easy-preprocess-xgb-max-iter-"
-file_name <- "easy-preprocess-xgb-best-iter-"
+file_name <- "impute-missing-value-xgb-"
 path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
 # export
 write_csv(submit,path = path_name)
