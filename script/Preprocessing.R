@@ -57,6 +57,7 @@ ImputeMissingValueRF <- function(data){
   imp <- data %>% 
     select_if(!grepl(paste(patterns, collapse="|"),names(.))) %>% # remove contain "SK_ID" or "TARGET"
     select_if(negate(is.factor)) %>% # only numeric value 
+    select_if(CheckCategoryColumn) %>% # only category column
     as.data.frame() %>% 
     missForest(
       variablewise = TRUE, ntree = 100,
@@ -68,6 +69,9 @@ ImputeMissingValueRF <- function(data){
             select_if(grepl(paste(patterns, collapse="|"),names(.))),
           data %>% 
             select_if(is.factor),
+          data %>% 
+            select_if(!grepl(paste(patterns, collapse="|"),names(.))) %>% 
+            select_if(funs(!CheckCategoryColumn(.))),
           imp$ximp)
   return(ans)
 }
