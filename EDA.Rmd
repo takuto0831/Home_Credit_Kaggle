@@ -181,6 +181,8 @@ credit_card <- credit_card %>%
 - using random forest for numeric value
 - for factor value ??
 
+連続値に対する処理きつい？？
+
 ```{r}
 app_train_imp <- ImputeMissingValueRF(app_train)
 app_test_imp <- ImputeMissingValueRF(app_test)
