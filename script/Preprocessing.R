@@ -44,14 +44,14 @@ ImputeMissingValueRF <- function(data){
   # remove list
   patterns <- c("SK_ID","TARGET")
   # parallel processing
-  cl <- makeCluster(4); registerDoParallel(cl)
+  cl <- makeCluster(detectCores()-1); registerDoParallel(cl)
   # impute missing values
   imp <- data %>% 
     select_if(!grepl(paste(patterns, collapse="|"),names(.))) %>% # remove contain "SK_ID" or "TARGET"
     select_if(negate(is.factor)) %>% # only numeric value 
     as.data.frame() %>% 
     missForest(
-      variablewise = TRUE, ntree = 1200,
+      variablewise = TRUE, ntree = 100,
       parallelize = "forests", verbose = TRUE) 
   stopCluster(cl)
   # combine all data
