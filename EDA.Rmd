@@ -183,7 +183,7 @@ credit_card <- credit_card %>%
 
 連続値に対する処理きつい？？
 
-```{r}
+```{r eval=FALSE}
 app_train_imp <- ImputeMissingValueRF(app_train[1:10000,])
 app_test_imp <- ImputeMissingValueRF(app_test)
 ```
@@ -406,6 +406,35 @@ dfSummarySplit(pos_cash)
 
 ```{r}
 dfSummarySplit(credit_card)
+```
+
+## Check TARGET = 1 users
+
+```{r}
+app_train %>% 
+  filter(TARGET == 1) %>% 
+  select(FLAG_OWN_CAR)  %>% 
+  table()
+app_train %>% 
+  filter(TARGET == 1) %>% 
+  select(FLAG_OWN_REALTY)  %>% 
+  table()
+app_train %>% 
+  filter(TARGET == 1) %>% 
+  select(EMERGENCYSTATE_MODE)  %>% 
+  table()
+app_train %>% 
+  filter(TARGET == 1) %>% 
+  select(FLAG_EMP_PHONE)  %>% 
+  table()
+app_train %>% 
+  filter(TARGET == 1) %>% 
+  select(FLAG_WORK_PHONE)  %>% 
+  table()
+app_train %>% 
+  filter(TARGET == 1) %>% 
+  select(FLAG_PHONE)  %>% 
+  table()
 ```
 
 ## Relational plot
