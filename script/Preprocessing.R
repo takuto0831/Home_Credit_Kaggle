@@ -5,7 +5,8 @@
 # dfSummarySplit: factor value -> numeric valueの順に変更して, dfSummary 関数を適用する
 # CheckBinaryColumn: binary value を factor type に変更する(連続値としての情報はない)
 # CheckCategoryColumn: uniqueな値が100(要考察)以下の場合, カテゴリカル変数とする
-# ImputeMissingValueRF: Random Forest による欠損値補完(numeric value)
+# ImputeMissingValueRF: Random Forest による欠損値補完
+# ImputeMissingValueRF: Multiple imputing による欠損値補完
 
 ########################################################################################
 
@@ -48,33 +49,40 @@ CheckCategoryColumn <- function(col){
   else return(FALSE)
 }
 
-# ImputeMissingValueRF
-ImputeMissingValueRF <- function(data){
-  # remove list
-  patterns <- c("SK_ID","TARGET")
+# ImputeMissingValueRF (要修正)
+ImputeMissingValueRF <- function(data,patterns){
   # parallel processing
   cl <- makeCluster(detectCores()-1); registerDoParallel(cl)
   # impute missing values
   imp <- data %>% 
-    select_if(!grepl(paste(patterns, collapse="|"),names(.))) %>% # remove contain "SK_ID" or "TARGET"
-    select_if(negate(is.factor)) %>% # only numeric value 
-    select_if(CheckCategoryColumn) %>% # only category column
     as.data.frame() %>% 
     missForest(
       variablewise = TRUE, ntree = 100,
       parallelize = "forests", verbose = TRUE) 
   stopCluster(cl)
-  # combine all data
-  ans <- 
-    cbind(data %>% 
-            select_if(grepl(paste(patterns, collapse="|"),names(.))),
-          data %>% 
-            select_if(is.factor),
-          data %>% 
-            select_if(!grepl(paste(patterns, collapse="|"),names(.))) %>% 
-            select_if(funs(!CheckCategoryColumn(.))),
-          imp$ximp)
+  # reaname data
+  ans <- imp$ximp %>% 
+    select_if(grepl(paste(patterns, collapse="|"),names(.)))
+  colnames(ans) <- paste(patterns,"_imp",sep = "")
   return(ans)
 }
+
+# ImputeMissingValueMI
+ImputeMissingValueMI <- function(data,patterns){
+  # impute missing value
+  options(mc.cores = 4)
+  imp <- data %>% 
+    as.data.frame() %>% 
+    missing_data.frame() %>% 
+    mi(n.iter = 30, n.chains = 4, max.minutes = 20)
+  tmp <- complete(imp,1:4)
+  ans <- data.frame( (tmp$`chain:1` + tmp$`chain:2` + tmp$`chain:3` + tmp$`chain:4`) / 4 ) %>% 
+    select_if(!grepl("missing",names(.))) %>% 
+    select_if(grepl(paste(patterns, collapse="|"),names(.)))
+  # rename data
+  colnames(ans) <- paste(patterns,"_imp",sep = "")
+  return(ans)
+}
+
 
 
