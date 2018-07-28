@@ -108,8 +108,10 @@ library(GGally) # ggpairs
 library(skimr) 
 library(missForest)
 library(imputeMissings)
-library(doParallel)
 library(mi)
+library(doParallel)
+library(qgraph)
+library(psych)
 ```
 
 ## Load funciton
@@ -266,32 +268,6 @@ app_test <- app_test %>%
   mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
 ```
 
-#### ???_MODE
-
-建物に関する諸情報(標準化済み)
-
-- FONDKAPREMONT_MODE (カラムがよくわからない)
-- HOUSETYPE_MODE
-- WALLSMATERIAL_MODE
-- TOTALAREA_MODE (敷地面積?)
-- EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
-
-```{r eval=FALSE}
-app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
-app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
-app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) %>% kable
-app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
-```
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
-app_test <- app_test %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
-```
-
 #### AMT_???
 
 - AMT_INCOME_TOTAL: 総収入
@@ -310,13 +286,268 @@ app_train %>%
 
 ```{r eval=FALSE}
 # 補完に使用するデータ
-data <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
+data1 <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
+data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
 # 欠損値を含むデータ
 patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
 
-tmp <- ImputeMissingValueRF(data,patterns)
+# 欠損値補完 (1 iter : 2000 second)
+tmp1 <- ImputeMissingValueRF(data1,patterns)
+tmp2 <- ImputeMissingValueRF(data1,patterns)
   
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
 
+#### OWN_CAR_AGE
+
+- 車の年数
+- 車の所持データとほぼ一致(5件: 車保持かつ年数不明があった)
+- 放置
+
+```{r eval=FALSE}
+app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL) 
+```
+
+#### CNT_FAM_MEMBERS
+
+- 家族の人数
+- 欠損値は一人と考える
+
+```{r eval=FALSE}
+# 子どもの人数 / 家族の人数
+app_train %>% select(CNT_CHILDREN,CNT_FAM_MEMBERS) %>% table(exclude = NULL) 
+app_train <- app_train %>% 
+  mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
+app_test <- app_test %>% 
+  mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
+```
+
+#### EXT_SOURCE_?
+
+何かの外部データ, 相関ない, 影響が強いので要検証
+
+- EXT_SOURCE_1
+- EXT_SOURCE_2
+- EXT_SOURCE_3
+
+```{r, eval=FALSE}
+app_train %>% 
+  select(EXT_SOURCE_1,EXT_SOURCE_2,EXT_SOURCE_3,AMT_CREDIT) %>% 
+  na.omit() %>% 
+  ggpairs()
+```
+
+#### ???_AVG
+
+- APARTMENTS_AVG
+- BASEMENTAREA_AVG
+- YEARS_BEGINEXPLUATATION_AVG
+- YEARS_BUILD_AVG
+- COMMONAREA_AVG
+- ELEVATORS_AVG
+- ENTRANCES_AVG
+- FLOORSMAX_AVG
+- FLOORSMIN_AVG
+- LANDAREA_AVG
+- LIVINGAPARTMENTS_AVG
+- LIVINGAREA_AVG
+- NONLIVINGAPARTMENTS_AVG
+- NONLIVINGAREA_AVG
+
+詳細
+
+- 住居等に関数正規化された情報
+- 平均項目
+- 14項目
+
+```{r eval=FALSE}
+app_train %>% 
+  select_if(grepl("_AVG",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+app_train %>% 
+  select_if(grepl("_AVG",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r eval=FALSE}
+# data
+data1 <- app_train %>% select_if(grepl("_AVG",names(.)))
+data2 <- app_test %>% select_if(grepl("_AVG",names(.)))
+# str_c(a,collapse = "', '")  
+patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG", "COMMONAREA_AVG",
+              "ELEVATORS_AVG", "ENTRANCES_AVG", "FLOORSMAX_AVG", "FLOORSMIN_AVG", "LANDAREA_AVG","LIVINGAPARTMENTS_AVG",
+              "LIVINGAREA_AVG", "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAREA_AVG") 
+# 欠損値補完 
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+tmp2 <- ImputeMissingValueMI(data2,patterns)
+  
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
+#### ???_MEDI
+
+- APARTMENTS_MEDI
+- BASEMENTAREA_MEDI
+- YEARS_BEGINEXPLUATATION_MEDI
+- YEARS_BUILD_MEDI
+- COMMONAREA_MEDI
+- ELEVATORS_MEDI
+- ENTRANCES_MEDI
+- FLOORSMAX_MEDI
+- FLOORSMIN_MEDI
+- LANDAREA_MEDI
+- LIVINGAPARTMENTS_MEDI
+- LIVINGAREA_MEDI
+- NONLIVINGAPARTMENTS_MEDI
+- NONLIVINGAREA_MEDI
+
+詳細
+- 住居等に関数正規化された情報
+- 中央値
+- 14項目
+
+```{r eval=FALSE}
+app_train %>% 
+  select_if(grepl("_MEDI",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+app_train %>% 
+  select_if(grepl("_MEDI",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r eval=FALSE}
+# data
+data1 <- app_train %>% select_if(grepl("_MEDI",names(.)))
+data2 <- app_test %>% select_if(grepl("_MEDI",names(.)))
+# str_c(a,collapse = "', '")  
+patterns <- c("APARTMENTS_MEDI", "BASEMENTAREA_MEDI", "YEARS_BEGINEXPLUATATION_MEDI", "YEARS_BUILD_MEDI", "COMMONAREA_MEDI", 
+              "ELEVATORS_MEDI", "ENTRANCES_MEDI", "FLOORSMAX_MEDI", "FLOORSMIN_MEDI", "LANDAREA_MEDI", "LIVINGAPARTMENTS_MEDI",
+              "LIVINGAREA_MEDI", "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAREA_MEDI") 
+# 欠損値補完 
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+tmp2 <- ImputeMissingValueMI(data2,patterns)
+  
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
+#### ???_MODE
+
+建物に関する諸情報(標準化済み)
+
+- factor
+    - FONDKAPREMONT_MODE (カラムがよくわからない)
+    - HOUSETYPE_MODE
+    - WALLSMATERIAL_MODE
+    - TOTALAREA_MODE (敷地面積?)
+    - EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
+- numeric
+    - APARTMENTS_MODE
+    - BASEMENTAREA_MODE
+    - YEARS_BEGINEXPLUATATION_MODE
+    - YEARS_BUILD_MODE
+    - COMMONAREA_MODE
+    - ELEVATORS_MODE
+    - ENTRANCES_MODE
+    - FLOORSMAX_MODE
+    - FLOORSMIN_MODE
+    - LANDAREA_MODE
+    - LIVINGAPARTMENTS_MODE
+    - LIVINGAREA_MODE
+    - NONLIVINGAPARTMENTS_MODE
+    - NONLIVINGAREA_MODE
+
+詳細
+- numeric: 14項目
+- factor: 5項目
+
+##### factor value 
+
+```{r eval=FALSE}
+app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
+app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
+app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) %>% kable
+app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
+
+app_train %>% 
+  select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE) %>% 
+  na.omit() %>% 
+  ggpairs()
+```
+
+```{r eval=FALSE}
+## impute 1
+# data
+data1 <- app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
+data2 <- app_test %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
+patterns <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE") 
+# 欠損値補完 
+tmp1 <- ImputeMissingValueRF(data1,patterns)
+tmp2 <- ImputeMissingValueRF(data2,patterns)
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+
+## impute 2
+app_train <- app_train %>% 
+  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
+  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
+app_test <- app_test %>% 
+  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
+  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
+```
+
+##### numeric value
+
+```{r eval=FALSE}
+tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
+app_train %>% 
+  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+app_train %>% 
+  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r eval=FALSE}
+# exclude
+tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
+# data
+data1 <- app_train %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.))) 
+data2 <- app_test %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.)))
+# str_c(a,collapse = "', '")  
+patterns <- c( "APARTMENTS_MODE", "BASEMENTAREA_MODE", "YEARS_BEGINEXPLUATATION_MODE", "YEARS_BUILD_MODE", "COMMONAREA_MODE", 
+               "ELEVATORS_MODE", "ENTRANCES_MODE", "FLOORSMAX_MODE", "FLOORSMIN_MODE", "LANDAREA_MODE", "LIVINGAPARTMENTS_MODE",
+               "LIVINGAREA_MODE", "NONLIVINGAPARTMENTS_MODE", "NONLIVINGAREA_MODE") 
+# 欠損値補完 
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+tmp2 <- ImputeMissingValueMI(data2,patterns)
+  
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
 ```
 
 ## combine all tables
