@@ -75,7 +75,7 @@ ImputeMissingValueMI <- function(data,patterns){
   imp <- data %>% 
     as.data.frame() %>% 
     missing_data.frame() %>% 
-    mi(n.iter = 30, n.chains = 4, max.minutes = 20)
+    mi(n.iter = 100, n.chains = 4, max.minutes = 20)
   tmp <- complete(imp,1:4)
   ans <- data.frame( (tmp$`chain:1` + tmp$`chain:2` + tmp$`chain:3` + tmp$`chain:4`) / 4 ) %>% 
     select_if(!grepl("missing",names(.))) %>% 
