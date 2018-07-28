@@ -67,7 +67,7 @@ output:
     - 重要なカラムの選択
     - 特徴量抽出
 - Kernel sample
-    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/) : xgboostではキャルクター扱えない??
+    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
     - [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
 
 # Setting{.tabset .tabset-fade .tabset-pills}
@@ -109,6 +109,7 @@ library(skimr)
 library(missForest)
 library(imputeMissings)
 library(doParallel)
+library(mi)
 ```
 
 ## Load funciton
@@ -117,12 +118,14 @@ library(doParallel)
 source('~/Desktop/Home_Credit_Kaggle/script/Preprocessing.R') # for preprocessing
 ```
 
-## read csv
+## read csv{.tabset .tabset-fade .tabset-pills}
 
 - Missing value
 na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する. (application_train のfactor列は確認済み)
 
 - convert charcter type into factor type
+
+### row data
 
 ```{r}
 # 訓練データ, テストデータ
@@ -150,6 +153,13 @@ credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN"
 # submit style file
 # sample_submission <- read_csv("csv/sample_submission.csv")
 ```
+
+### imputed data
+
+```{r}
+
+```
+
 
 # Preprocess
 
@@ -194,7 +204,7 @@ credit_card <- credit_card %>%
 
 - 少ないので放置
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select(CODE_GENDER) %>% 
   table(exclude = NULL)
@@ -209,7 +219,7 @@ app_test %>%
 - 同行者の情報
 - 無記載 = 同行者なしと考える
 
-```{r}
+```{r eval=FALSE}
 app_train <- app_train %>% 
   mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
 app_test <- app_test %>% 
@@ -222,7 +232,7 @@ app_test <- app_test %>%
 - 所属=NA and 職業=NA -> 無職,無所属
 - 所属=NA, 職業=NA -> other
 
-```{r}
+```{r eval=FALSE}
 # app_train %>% select(OCCUPATION_TYPE) %>% table()
 app_train <- app_train %>% 
   mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
@@ -241,7 +251,7 @@ app_test <- app_test %>%
 - 所属=NA and 職業=NA -> 無職,無所属
 - 所属=NA, 職業=NA -> other
 
-```{r}
+```{r eval=FALSE}
 # app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) %>% kable
 # app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) %>% kable
 
@@ -266,15 +276,14 @@ app_test <- app_test %>%
 - TOTALAREA_MODE (敷地面積?)
 - EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
 
-```{r,eval=FALSE}
+```{r eval=FALSE}
 app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
 app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
 app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) %>% kable
-
 app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
 ```
 
-```{r}
+```{r eval=FALSE}
 app_train <- app_train %>% 
   mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
   mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
@@ -296,17 +305,15 @@ app_train %>%
   ggpairs()
 ```
 
-```{r}
-app_train %>% 
-  select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
-  as.data.frame() %>% 
-  missing_data.frame() -> a
+```{r eval=FALSE}
+# 補完に使用するデータ
+data <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
+# 欠損値を含むデータ
+patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
 
-# options(mc.cores = 1)
-imputations <- mi(a, n.iter = 10, n.chains = 1, max.minutes = 10) 
-complete(imputations) %>% 
-  select( AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
-  ggpairs()
+tmp <- ImputeMissingValueRF(data,patterns)
+  
+
 ```
 
 ## combine all tables
