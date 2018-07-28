@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Home_Credit_Kaggle](#home_credit_kaggle)
+  - [Rmd.file](#rmdfile)
+  - [Script.file](#scriptfile)
+  - [submit.file](#submitfile)
+  - [about_column.numbers](#about_columnnumbers)
+- [ディレクトリ](#%E3%83%87%E3%82%A3%E3%83%AC%E3%82%AF%E3%83%88%E3%83%AA)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Home_Credit_Kaggle
 
 ## Rmd.file
@@ -18,6 +31,12 @@
 - file_name: データの詳細な構造
 - submit_data: 作成日
 
+## about_column.numbers
+
+- csv dataの各カラムの説明, およびメモ
+- ROW name and memo (青色): 欠損値かつ無処理
+- ROW name (青色): 欠損値かつ処理したカラムを追加済み
+
 # ディレクトリ
  
 ```
@@ -26,6 +45,7 @@
 ├── XGBoost.Rmd
 ├── XGBoost.html
 ├── Home_Credit_Kaggle.Rproj
+├── about_column.numbers
 ├── csv
 │   ├── HomeCredit_columns_description.csv
 │   ├── POS_CASH_balance.csv
