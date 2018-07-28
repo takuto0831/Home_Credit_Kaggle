@@ -7,7 +7,7 @@
   - [Script.file](#scriptfile)
   - [submit.file](#submitfile)
   - [about_column.numbers](#about_columnnumbers)
-- [ディレクトリ](#%E3%83%87%E3%82%A3%E3%83%AC%E3%82%AF%E3%83%88%E3%83%AA)
+- [Layered Directory](#layered-directory)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
