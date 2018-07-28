@@ -4,7 +4,7 @@
 
 - [Home_Credit_Kaggle](#home_credit_kaggle)
   - [Rmd.file](#rmdfile)
-  - [Script.file](#scriptfile)
+  - [script.file](#scriptfile)
   - [submit.file](#submitfile)
   - [about_column.numbers](#about_columnnumbers)
 - [Layered Directory](#layered-directory)
@@ -20,7 +20,7 @@
 	- パラメータの調整
 	- xgboostに関する学習
 
-## Script.file
+## script.file
  
 - function: 作業工程ごとに分割, 関数の詳細を記述
 	- Preprocessing.R: 前処理
@@ -55,10 +55,10 @@
 │   ├── bureau_balance.csv
 │   ├── credit_card_balance.csv
 │   ├── installments_payments.csv
-│  ├── previous_application.csv
+│   ├── previous_application.csv
 │   └── sample_submission.csv
-└── function
-│    └── Preprocessing.R
+└── script
+│   └── Preprocessing.R
 └── submit
     └── test-submit-xgb2018-07-21
 ``
