@@ -292,8 +292,8 @@ data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE)
 patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
 
 # 欠損値補完 (1 iter : 2000 second)
-tmp1 <- ImputeMissingValueRF(data1,patterns)
-tmp2 <- ImputeMissingValueRF(data2,patterns)
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+tmp2 <- ImputeMissingValueMI(data2,patterns)
   
 # データ結合
 app_train <- cbind(app_train,tmp1)
