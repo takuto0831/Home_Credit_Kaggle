@@ -37,7 +37,7 @@
 - ROW name and memo (青色): 欠損値かつ無処理
 - ROW name (青色): 欠損値かつ処理したカラムを追加済み
 
-# ディレクトリ
+# Layered Directory
  
 ```
 ├── EDA.Rmd
