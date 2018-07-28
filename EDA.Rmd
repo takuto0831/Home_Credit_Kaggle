@@ -53,11 +53,14 @@ output:
 - Set up
     - library package
     - load function
-    - read csv (前処理一部含む)
+    - read csv 
+        - unified missing value (NA)
+        - charcter type -> factor type  
 - Preprocessing
-    - charcter type -> factor type  
-    - Missing values count
-    - convert to factor type of binary variable
+    - convert to factor type of binary variable ( not need )
+    - impute missing value and add column (important !!!)
+    - make new feature value 
+    - combine all tables
 - EDA
     - データ内の課題発見
     - データの特性発見
@@ -65,7 +68,7 @@ output:
     - 特徴量抽出
 - Kernel sample
     - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/) : xgboostではキャルクター扱えない??
-- Data analysis
+    - [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
 
 # Setting{.tabset .tabset-fade .tabset-pills}
 
@@ -148,9 +151,11 @@ credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN"
 # sample_submission <- read_csv("csv/sample_submission.csv")
 ```
 
-# Preprocess{.tabset .tabset-fade .tabset-pills}
+# Preprocess
 
-- convert to factor type of binary variable
+- convert to factor type of binary variable ( not need )
+- impute missing value and add column (important !!!)
+- make new feature value 
 - combine all tables
 
 ## convert to factor type of binary variable 
@@ -178,14 +183,130 @@ credit_card <- credit_card %>%
 
 ## impute missing values
 
-- using random forest for categorical value and factor value 
-- using multiple imputations for numerical value
+- 各テーブルの欠損値を確認, 詳細をデータ説明シートに記述
+- 欠損値補完に使えそうな値の調査および欠損値補完の実施
+- 各テーブルごとに行う
+- 追加したカラムには `_imp`を加える (_impで列を削除すれば, 元データが手に入る)
 
-連続値に対する処理きつい？？
+### app_train and app_test {.tabset .tabset-fade .tabset-pills}
+
+#### CODE_GENDER 
+
+- 少ないので放置
+
+```{r}
+app_train %>% 
+  select(CODE_GENDER) %>% 
+  table(exclude = NULL)
+
+app_test %>% 
+  select(CODE_GENDER) %>% 
+  table(exclude = NULL)
+```
+
+#### NAME_TYPE_SUITE
+
+- 同行者の情報
+- 無記載 = 同行者なしと考える
+
+```{r}
+app_train <- app_train %>% 
+  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
+app_test <- app_test %>% 
+  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
+```
+
+#### OCCUPATION_TYPE
+
+- other, フリーターの項目がない
+- 所属=NA and 職業=NA -> 無職,無所属
+- 所属=NA, 職業=NA -> other
+
+```{r}
+# app_train %>% select(OCCUPATION_TYPE) %>% table()
+app_train <- app_train %>% 
+  mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
+                                      ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
+  mutate(OCCUPATION_TYPE_imp = OCCUPATION_TYPE_imp %>% as.factor())
+
+app_test <- app_test %>% 
+  mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
+                                      ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
+  mutate(OCCUPATION_TYPE_imp = OCCUPATION_TYPE_imp %>% as.factor())
+```
+
+#### ORGANIZATION_TYPE 
+
+- 所属=NAはほぼ, 職業=NA (例外は2件のみ)
+- 所属=NA and 職業=NA -> 無職,無所属
+- 所属=NA, 職業=NA -> other
+
+```{r}
+# app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) %>% kable
+# app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) %>% kable
+
+app_train <- app_train %>% 
+  mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
+                                      ifelse(is.na(OCCUPATION_TYPE),"Unemployed","Other"))) %>% 
+  mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
+
+app_test <- app_test %>% 
+  mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
+                                      ifelse(is.na(OCCUPATION_TYPE),"Unemployed","other"))) %>% 
+  mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
+```
+
+#### ???_MODE
+
+建物に関する諸情報(標準化済み)
+
+- FONDKAPREMONT_MODE (カラムがよくわからない)
+- HOUSETYPE_MODE
+- WALLSMATERIAL_MODE
+- TOTALAREA_MODE (敷地面積?)
+- EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
+
+```{r,eval=FALSE}
+app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
+app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
+app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) %>% kable
+
+app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
+```
+
+```{r}
+app_train <- app_train %>% 
+  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
+  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
+```
+
+#### AMT_???
+
+- AMT_INCOME_TOTAL: 総収入
+- AMT_CREDIT: ローンのクレジット額
+- AMT_ANNUITY: 年金ローン
+- AMT_GOODS_PRICE: 消費者ローン
+
+=> 3つのローンの相関関係強い, 欠損値補完に使える！！
 
 ```{r eval=FALSE}
-app_train_imp <- ImputeMissingValueRF(app_train[1:10000,])
-app_test_imp <- ImputeMissingValueRF(app_test)
+app_train %>% 
+  select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
+  na.omit() %>% 
+  ggpairs()
+```
+
+```{r}
+app_train %>% 
+  select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
+  as.data.frame() %>% 
+  missing_data.frame() -> a
+
+# options(mc.cores = 1)
+imputations <- mi(a, n.iter = 10, n.chains = 1, max.minutes = 10) 
+complete(imputations) %>% 
+  select( AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
+  ggpairs()
 ```
 
 ## combine all tables
@@ -410,7 +531,10 @@ dfSummarySplit(credit_card)
 
 ## Check TARGET = 1 users
 
-```{r}
+- TARGET=1となる値の確認
+- あんまりうまくいかなそう
+
+```{r eval=FALSE}
 app_train %>% 
   filter(TARGET == 1) %>% 
   select(FLAG_OWN_CAR)  %>% 
