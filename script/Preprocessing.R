@@ -52,7 +52,8 @@ CheckCategoryColumn <- function(col){
 # ImputeMissingValueRF (要修正)
 ImputeMissingValueRF <- function(data,patterns){
   # parallel processing
-  cl <- makeCluster(detectCores()-1); registerDoParallel(cl)
+  len <- min( dim(data)[2], detectCores()-1)
+  cl <- makeCluster(len); registerDoParallel(cl)
   # impute missing values
   imp <- data %>% 
     as.data.frame() %>% 
