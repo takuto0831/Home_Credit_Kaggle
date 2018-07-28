@@ -6,6 +6,7 @@
 # CheckBinaryColumn: binary value を factor type に変更する(連続値としての情報はない)
 # CheckCategoryColumn: uniqueな値が100(要考察)以下の場合, カテゴリカル変数とする
 # ImputeMissingValueRF: Random Forest による欠損値補完(numeric value)
+
 ########################################################################################
 
 # CheckMissingValue
