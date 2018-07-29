@@ -113,6 +113,7 @@ library(mi)
 library(doParallel)
 library(qgraph)
 library(psych)
+library(fastcluster)
 ```
 
 ## Load funciton
@@ -274,38 +275,6 @@ app_test <- app_test %>%
   mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
 ```
 
-#### AMT_???
-
-- AMT_INCOME_TOTAL: 総収入
-- AMT_CREDIT: ローンのクレジット額
-- AMT_ANNUITY: 年金ローン
-- AMT_GOODS_PRICE: 消費者ローン
-
-=> 3つのローンの相関関係強い, 欠損値補完に使える！！
-
-```{r}
-app_train %>% 
-  select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
-  na.omit() %>% 
-  ggpairs()
-```
-
-```{r eval=FALSE}
-# 補完に使用するデータ
-data1 <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
-data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
-# 欠損値を含むデータ
-patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
-
-# 欠損値補完 (1 iter : 2000 second)
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
 #### OWN_CAR_AGE
 
 - 車の年数
@@ -326,7 +295,7 @@ app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL)
 app_train %>% select(CNT_CHILDREN,CNT_FAM_MEMBERS) %>% table(exclude = NULL) 
 ```
 
-```{r}
+```{r eval=FALSE}
 app_train <- app_train %>% 
   mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
 app_test <- app_test %>% 
@@ -559,6 +528,127 @@ app_train <- cbind(app_train,tmp1)
 app_test <- cbind(app_test,tmp2)
 ```
 
+#### ????_CIRCLE
+
+- OBS_30_CNT_SOCIAL_CIRCLE
+- DEF_30_CNT_SOCIAL_CIRCLE
+- OBS_60_CNT_SOCIAL_CIRCLE
+- DEF_60_CNT_SOCIAL_CIRCLE
+
+-> 観測されていないなら = 0
+
+```{r}
+app_train %>% 
+  select_if(grepl("_CIRCLE",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+app_train %>% 
+  select_if(grepl("_CIRCLE",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r eval=FALSE}
+app_train <- app_train %>% 
+  mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
+  mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
+  mutate(OBS_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_60_CNT_SOCIAL_CIRCLE),0,OBS_60_CNT_SOCIAL_CIRCLE )) %>% 
+  mutate(DEF_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_60_CNT_SOCIAL_CIRCLE),0,DEF_60_CNT_SOCIAL_CIRCLE )) 
+app_test <- app_test %>% 
+  mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
+  mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
+  mutate(OBS_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_60_CNT_SOCIAL_CIRCLE),0,OBS_60_CNT_SOCIAL_CIRCLE )) %>% 
+  mutate(DEF_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_60_CNT_SOCIAL_CIRCLE),0,DEF_60_CNT_SOCIAL_CIRCLE )) 
+```
+
+#### DAYS_LAST_PHONE_CHANGE
+
+- 欠損値一人
+- 保留
+
+#### AMT_???
+
+##### part1 
+
+- AMT_INCOME_TOTAL: 総収入
+- AMT_CREDIT: ローンのクレジット額
+- AMT_ANNUITY: 年金ローン
+- AMT_GOODS_PRICE: 消費者ローン
+
+=> 3つのローンの相関関係強い, 欠損値補完に使える！！
+
+```{r}
+app_train %>% 
+  select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
+  na.omit() %>% 
+  ggpairs()
+```
+
+```{r eval=FALSE}
+# 補完に使用するデータ
+data1 <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
+data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
+# 欠損値を含むデータ
+patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
+
+# 欠損値補完 (1 iter : 2000 second)
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+tmp2 <- ImputeMissingValueMI(data2,patterns)
+  
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
+##### part2
+
+1. 何かの紹介件数 NA-> 0補完
+2. 関係性低い
+
+- AMT_REQ_CREDIT_BUREAU_HOUR
+- AMT_REQ_CREDIT_BUREAU_DAY
+- AMT_REQ_CREDIT_BUREAU_WEEK
+- AMT_REQ_CREDIT_BUREAU_MON
+- AMT_REQ_CREDIT_BUREAU_QRT
+- AMT_REQ_CREDIT_BUREAU_YEAR
+
+```{r}
+app_train %>% 
+  select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
+         AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+app_train %>% 
+  select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
+         AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r eval=FALSE}
+app_train <- app_train %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_WEEK_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_WEEK),0,AMT_REQ_CREDIT_BUREAU_WEEK)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_MON_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_MON),0,AMT_REQ_CREDIT_BUREAU_MON)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_QRT_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_QRT),0,AMT_REQ_CREDIT_BUREAU_QRT)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
+
+app_test <- app_test %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_WEEK_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_WEEK),0,AMT_REQ_CREDIT_BUREAU_WEEK)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_MON_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_MON),0,AMT_REQ_CREDIT_BUREAU_MON)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_QRT_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_QRT),0,AMT_REQ_CREDIT_BUREAU_QRT)) %>% 
+  mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
+```
+
 ## combine all tables
 
 ```{r}
@@ -782,9 +872,14 @@ dfSummarySplit(credit_card)
 
 ## Dendrogram
 
-```{r}
-hc <- hclust(dist(app_train))
-ggdendrogram(hc, rotate = TRUE, size = 2)
+- 可視化できない
+- 保留
+
+```{r, eval=FALSE}
+#hc <- fastcluster::hclust(dist(app_train[1:10000,]))
+#a <- as.dendrogram(hc)
+par(mar = c(3,3,3,7))
+plot(a, horiz =  TRUE,  nodePar = list(cex = .007))
 ```
 
 ## Check TARGET = 1 users
