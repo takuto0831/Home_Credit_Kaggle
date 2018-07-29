@@ -69,7 +69,8 @@ output:
 - Kernel sample
     - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
     - [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
-
+    - [missing value pattern](https://www.kaggle.com/jpmiller/patterns-of-missing-data)
+    
 # Setting{.tabset .tabset-fade .tabset-pills}
 
 ## knitr option
@@ -569,6 +570,7 @@ app_test <- cbind(app_test,tmp2)
 - 基礎集計
 - 欠損値の確認
 - uniqueな値の確認
+- Dendrogram
 
 ## Check Missing value{.tabset .tabset-fade .tabset-pills}
 
@@ -776,6 +778,13 @@ dfSummarySplit(pos_cash)
 
 ```{r}
 dfSummarySplit(credit_card)
+```
+
+## Dendrogram
+
+```{r}
+hc <- hclust(dist(app_train))
+ggdendrogram(hc, rotate = TRUE, size = 2)
 ```
 
 ## Check TARGET = 1 users
