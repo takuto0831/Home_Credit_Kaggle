@@ -7,6 +7,8 @@
   - [script.file](#scriptfile)
   - [submit.file](#submitfile)
   - [about_column.numbers](#about_columnnumbers)
+  - [csv.file](#csvfile)
+  - [csv_imp.file](#csv_impfile)
 - [Layered Directory](#layered-directory)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -22,8 +24,8 @@
 
 ## script.file
  
-- function: 作業工程ごとに分割, 関数の詳細を記述
-	- Preprocessing.R: 前処理
+- function.R: 関数の詳細を記述
+- preprocess_{date}.R: 前処理コード, {date}に日付を記入, csv_impのデータと対応
 	 
 ## submit.file
 
@@ -36,6 +38,15 @@
 - csv dataの各カラムの説明, およびメモ
 - ROW name and memo (青色): 欠損値かつ無処理
 - ROW name (青色): 欠損値かつ処理したカラムを追加済み
+
+## csv.file
+
+- 元のデータ
+
+## csv_imp.file
+
+- 欠損処理等を実行したもの
+- preprocess_date.Rの日付と対応づけて保存
 
 # Layered Directory
  
@@ -57,8 +68,10 @@
 │   ├── installments_payments.csv
 │   ├── previous_application.csv
 │   └── sample_submission.csv
+├── csv_imp
 └── script
-│   └── Preprocessing.R
+│   ├── function.R
+│   └── preprocess_{date}.R
 └── submit
     └── test-submit-xgb2018-07-21
 ``
