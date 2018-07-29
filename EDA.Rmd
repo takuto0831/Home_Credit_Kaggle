@@ -259,8 +259,8 @@ app_test <- app_test %>%
 - 所属=NA, 職業=NA -> other
 
 ```{r}
-app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) %>% kable
-app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) %>% kable
+app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) 
+#app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) 
 ```
 
 ```{r eval=FALSE}
@@ -457,9 +457,9 @@ app_test <- cbind(app_test,tmp2)
 ##### factor value 
 
 ```{r}
-app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
-app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) %>% kable
-app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) %>% kable
+app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
+app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
+app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) 
 app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
 
 app_train %>% 
