@@ -117,7 +117,7 @@ library(psych)
 ## Load funciton
 
 ```{r cache=FALSE}
-source('~/Desktop/Home_Credit_Kaggle/script/Preprocessing.R') # for preprocessing
+source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
 ```
 
 ## read csv{.tabset .tabset-fade .tabset-pills}
