@@ -71,11 +71,13 @@ ImputeMissingValueRF <- function(data,patterns){
 # ImputeMissingValueMI
 ImputeMissingValueMI <- function(data,patterns){
   # impute missing value
-  options(mc.cores = 4)
+  cl <- makeCluster(4); registerDoParallel(cl)
   imp <- data %>% 
     as.data.frame() %>% 
     missing_data.frame() %>% 
-    mi(n.iter = 100, n.chains = 4, max.minutes = 20)
+    mi(n.iter = 10, n.chains = 4, max.minutes = 20, parallel = TRUE)
+  stopCluster(cl)
+  # extract value
   tmp <- complete(imp,1:4)
   ans <- data.frame( (tmp$`chain:1` + tmp$`chain:2` + tmp$`chain:3` + tmp$`chain:4`) / 4 ) %>% 
     select_if(!grepl("missing",names(.))) %>% 
