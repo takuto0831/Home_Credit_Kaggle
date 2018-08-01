@@ -116,6 +116,8 @@ library(psych)
 library(fastcluster)
 ```
 
+
+
 ## Load funciton
 
 ```{r cache=FALSE}
