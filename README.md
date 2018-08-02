@@ -17,15 +17,19 @@
 
 ## Rmd.file
 
-- EDA.Rmd: データ概要, 基礎集計
-- XGBoost.Rmd: xgboostによるモデル構築, 予測, 提出ファイルの作成
-	- パラメータの調整
-	- xgboostに関する学習
+- 0_EDA.Rmd: Checking data simply and searching problem
+- 1_Preprocess_app.Rmd: Preprocessing for application_{train|test}.csv
+- 1_Preprocess_bureau.Rmd: Preprocessing for bureau.csv and bureau_balance.csv
+- 1_Preprocess_pre_app.Rmd: Preprocessing for previous_applications.csv
+- 1_Preprocess_ins_pay.Rmd: Preprocessing for installments_payment.csv
+- 1_Preprocess_pos_cash.Rmd: Preprocessing for POS_CASH_balance.csv
+- 1_Preprocess_credit.Rmd: Preprocessing for credit_card_balance.csv
+- 2_Combine.Rmd: Combining all data and Checking for data
+- 3_XGBoost.Rmd: xgboostによるモデル構築, 予測, 提出ファイルの作成
 
 ## script.file
  
 - function.R: 関数の詳細を記述
-- preprocess_{date}.R: 前処理コード, {date}に日付を記入, csv_impのデータと対応
 	 
 ## submit.file
 
@@ -51,12 +55,21 @@
 # Layered Directory
  
 ```
-├── EDA.Rmd
-├── EDA.html
-├── XGBoost.Rmd
-├── XGBoost.html
 ├── Home_Credit_Kaggle.Rproj
+├── README.md
 ├── about_column.numbers
+├── Rmd
+│   ├── 0_EDA.Rmd
+│   ├── 1_Preprocess_app.Rmd
+│   ├── 1_Preprocess_app.html
+│   ├── 1_Preprocess_bureau.Rmd
+│   ├── 1_Preprocess_credit.Rmd
+│   ├── 1_Preprocess_ins_pay.Rmd
+│   ├── 1_Preprocess_pos_cash.Rmd
+│   ├── 1_Preprocess_pre_app.Rmd
+│   ├── 2_Combine.Rmd
+│   ├── 3_XGBoost.Rmd
+│   └── EDA.html
 ├── csv
 │   ├── HomeCredit_columns_description.csv
 │   ├── POS_CASH_balance.csv
@@ -66,12 +79,15 @@
 │   ├── bureau_balance.csv
 │   ├── credit_card_balance.csv
 │   ├── installments_payments.csv
-│   ├── previous_application.csv
+│   ├── previous_application.csv
 │   └── sample_submission.csv
 ├── csv_imp
-└── script
-│   ├── function.R
-│   └── preprocess_{date}.R
+├── script
+│   └── function.R
 └── submit
+    ├── easy-preprocess-xgb-best-iter-2018-07-25
+    ├── easy-preprocess-xgb-best-iter-2018-07-26
+    ├── easy-preprocess-xgb-max-iter-2018-07-25
     └── test-submit-xgb2018-07-21
-``
+```
+
