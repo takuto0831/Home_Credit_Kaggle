@@ -106,8 +106,8 @@ xgb_params = list(
   booster = "gbtree",
   eval_metric = "auc",
   nthread = 4,
-  eta = 0.05,
-  max_depth = 6,
+  eta = 0.03,
+  max_depth = 7,
   min_child_weight = 30,
   gamma = 0,
   subsample = 0.85,
@@ -172,8 +172,8 @@ submit <- data.frame(test_data,TARGET = pred_test) %>%
 
 ```{r}
 # file name + submit date
-file_name <- "impute-missing-value-xgb-"
-path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
+file_name <- "impute-missing-value-xgb2-"
+path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),sep = "")
 # export
 write_csv(submit,path = path_name)
 ```
