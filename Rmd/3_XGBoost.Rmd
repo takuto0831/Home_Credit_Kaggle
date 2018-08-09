@@ -15,10 +15,6 @@ output:
 - XGBoostについて
     - xgboostの各種パラメータおよび, cvにおける意義を考える
     - 並列処理できるのか
-- EDAについて
-    - 必要なパラメータの選択
-    - まとめられるパラメータの選択
-    - 新たな特徴量の作成
 
 ## 参考サイト
 
@@ -99,7 +95,9 @@ test_data <- app_test
 
 ### model
 
-- 10分割交差検証法
+- parameter set
+- 10-fold cross-validation
+- xgboost
 
 ```{r}
 # xgboost fitting with arbitrary parameters
@@ -150,7 +148,7 @@ xgb_test <-
 ```{r}
 # 重要なパラメータの可視化
 xgb.importance(model = xgb_test) %>% 
-  xgb.plot.importance(top_n = 30)
+  xgb.plot.importance(top_n = 50)
 ```
 
 ### Predict
@@ -185,39 +183,39 @@ write_csv(submit,path = path_name)
 ### model 
 
 ```{r,eval=FALSE}
-# hyper-parameters to be extracted with 10-fold cross validation repeated 2 times
-trControl <- trainControl(method="cv", 
-                          number=5, 
-                          allowParallel = TRUE,
-                          verboseIter = TRUE)
-
-xgbGrid <- expand.grid(
-  nrounds=c(350),
-  max_depth = c(4, 6),
-  eta = c(0.05, 0.1),
-  gamma = c(0.01),
-  colsample_bytree = c(0.75),
-  subsample = c(0.50),
-  min_child_weight = c(0))
-
-# predict + parallel
-cl <- makeCluster(detectCores()) 
-registerDoParallel(cl)
-
-## factor(TARGET) -> classifiacation
-## TARGET -> regression
-model_xgb <- train(TARGET ~ ., 
-                   data = data.matrix(train_data[1:100,]), 
-                   na.action = na.pass, # 欠損値に対する処理
-                   trControl=trControl, 
-                   method='xgbTree', 
-                   objective = "binary:logistic",
-                   tuneGrid = xgbGrid);
-
-
-stopCluster(cl)
-# result
-print(model_xgb)
+# # hyper-parameters to be extracted with 10-fold cross validation repeated 2 times
+# trControl <- trainControl(method="cv", 
+#                           number=5, 
+#                           allowParallel = TRUE,
+#                           verboseIter = TRUE)
+# 
+# xgbGrid <- expand.grid(
+#   nrounds=c(350),
+#   max_depth = c(4, 6),
+#   eta = c(0.05, 0.1),
+#   gamma = c(0.01),
+#   colsample_bytree = c(0.75),
+#   subsample = c(0.50),
+#   min_child_weight = c(0))
+# 
+# # predict + parallel
+# cl <- makeCluster(detectCores()) 
+# registerDoParallel(cl)
+# 
+# ## factor(TARGET) -> classifiacation
+# ## TARGET -> regression
+# model_xgb <- train(TARGET ~ ., 
+#                    data = data.matrix(train_data[1:100,]), 
+#                    na.action = na.pass, # 欠損値に対する処理
+#                    trControl=trControl, 
+#                    method='xgbTree', 
+#                    objective = "binary:logistic",
+#                    tuneGrid = xgbGrid);
+# 
+# 
+# stopCluster(cl)
+# # result
+# print(model_xgb)
 ```
 
 ### predict
@@ -226,6 +224,6 @@ print(model_xgb)
 - 0=1のルールを考慮できていない??
 
 ```{r eval=FALSE}
-pred_caret <- predict(model_xgb, data.matrix(test_data %>% select(-SK_ID_CURR)))
+# pred_caret <- predict(model_xgb, data.matrix(test_data %>% select(-SK_ID_CURR)))
 ```
 
