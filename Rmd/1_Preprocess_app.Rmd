@@ -82,14 +82,16 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na 
 
 # Preprocess
 
-- impute missing value and add column (important !!!)
-- output for csv
-
-## impute missing values{.tabset .tabset-fade .tabset-pills}
-
 - Check for imputation values
 - Describe the details on the explanation sheet
 - Add `_imp` to the added column
+- Output for csv
+
+## impute missing values{.tabset .tabset-fade .tabset-pills}
+
+- 検証内容
+    - データ特性に従って欠損値を推定
+    - 多重代入法などのアルゴリムに従って, 欠損値を推定
 
 ### CODE_GENDER 
 
@@ -125,6 +127,7 @@ app_test <- app_test %>%
 
 ```{r}
 app_train %>% select(OCCUPATION_TYPE) %>% table()
+app_test %>% select(OCCUPATION_TYPE) %>% table()
 ```
 
 ```{r eval=FALSE}
@@ -191,11 +194,14 @@ app_test <- app_test %>%
 
 ### EXT_SOURCE_??
 
-何かの外部データ, 相関ない, 影響が強いので要検証
+- data list
+    - EXT_SOURCE_1
+    - EXT_SOURCE_2
+    - EXT_SOURCE_3
 
-- EXT_SOURCE_1
-- EXT_SOURCE_2
-- EXT_SOURCE_3
+- 何かの外部データ, 影響が強いので要検証
+- 収入とクレジットを元に, 多重代入法による欠損値補完
+
 
 ```{r}
 app_train %>% 
@@ -211,7 +217,7 @@ data2 <- app_test %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INC
 # str_c(a,collapse = "', '")  
 patterns <- c("EXT_SOURCE_1","EXT_SOURCE_2","EXT_SOURCE_3")
 # 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1[1:1000,],patterns)
+tmp1 <- ImputeMissingValueMI(data1,patterns)
 tmp2 <- ImputeMissingValueMI(data2,patterns)
   
 # データ結合
@@ -221,26 +227,26 @@ app_test <- cbind(app_test,tmp2)
 
 ### ???_AVG
 
-- APARTMENTS_AVG
-- BASEMENTAREA_AVG
-- YEARS_BEGINEXPLUATATION_AVG
-- YEARS_BUILD_AVG
-- COMMONAREA_AVG
-- ELEVATORS_AVG
-- ENTRANCES_AVG
-- FLOORSMAX_AVG
-- FLOORSMIN_AVG
-- LANDAREA_AVG
-- LIVINGAPARTMENTS_AVG
-- LIVINGAREA_AVG
-- NONLIVINGAPARTMENTS_AVG
-- NONLIVINGAREA_AVG
-
-詳細
+- data list
+    - APARTMENTS_AVG
+    - BASEMENTAREA_AVG
+    - YEARS_BEGINEXPLUATATION_AVG
+    - YEARS_BUILD_AVG
+    - COMMONAREA_AVG
+    - ELEVATORS_AVG
+    - ENTRANCES_AVG
+    - FLOORSMAX_AVG
+    - FLOORSMIN_AVG
+    - LANDAREA_AVG
+    - LIVINGAPARTMENTS_AVG
+    - LIVINGAREA_AVG
+    - NONLIVINGAPARTMENTS_AVG
+    - NONLIVINGAREA_AVG
 
 - 住居等に関数正規化された情報
 - 平均項目
 - 14項目
+- 保留
 
 ```{r}
 app_train %>% 
@@ -257,43 +263,44 @@ app_train %>%
 ```
 
 ```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl("_AVG",names(.)))
-data2 <- app_test %>% select_if(grepl("_AVG",names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG", "COMMONAREA_AVG",
-              "ELEVATORS_AVG", "ENTRANCES_AVG", "FLOORSMAX_AVG", "FLOORSMIN_AVG", "LANDAREA_AVG","LIVINGAPARTMENTS_AVG",
-              "LIVINGAREA_AVG", "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAREA_AVG") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
+# # data
+# data1 <- app_train %>% select_if(grepl("_AVG",names(.)))
+# data2 <- app_test %>% select_if(grepl("_AVG",names(.)))
+# # str_c(a,collapse = "', '")  
+# patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG", "COMMONAREA_AVG",
+#               "ELEVATORS_AVG", "ENTRANCES_AVG", "FLOORSMAX_AVG", "FLOORSMIN_AVG", "LANDAREA_AVG","LIVINGAPARTMENTS_AVG",
+#               "LIVINGAREA_AVG", "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAREA_AVG") 
+# # 欠損値補完 
+# tmp1 <- ImputeMissingValueMI(data1,patterns)
+# tmp2 <- ImputeMissingValueMI(data2,patterns)
+# 
+# # データ結合
+# app_train <- cbind(app_train,tmp1)
+# app_test <- cbind(app_test,tmp2)
 ```
 
 ### ???_MEDI
 
-- APARTMENTS_MEDI
-- BASEMENTAREA_MEDI
-- YEARS_BEGINEXPLUATATION_MEDI
-- YEARS_BUILD_MEDI
-- COMMONAREA_MEDI
-- ELEVATORS_MEDI
-- ENTRANCES_MEDI
-- FLOORSMAX_MEDI
-- FLOORSMIN_MEDI
-- LANDAREA_MEDI
-- LIVINGAPARTMENTS_MEDI
-- LIVINGAREA_MEDI
-- NONLIVINGAPARTMENTS_MEDI
-- NONLIVINGAREA_MEDI
+- data list
+    - APARTMENTS_MEDI
+    - BASEMENTAREA_MEDI
+    - YEARS_BEGINEXPLUATATION_MEDI
+    - YEARS_BUILD_MEDI
+    - COMMONAREA_MEDI
+    - ELEVATORS_MEDI
+    - ENTRANCES_MEDI
+    - FLOORSMAX_MEDI
+    - FLOORSMIN_MEDI
+    - LANDAREA_MEDI
+    - LIVINGAPARTMENTS_MEDI
+    - LIVINGAREA_MEDI
+    - NONLIVINGAPARTMENTS_MEDI
+    - NONLIVINGAREA_MEDI
 
-詳細
 - 住居等に関数正規化された情報
 - 中央値
 - 14項目
+- 保留
 
 ```{r}
 app_train %>% 
@@ -310,33 +317,34 @@ app_train %>%
 ```
 
 ```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl("_MEDI",names(.)))
-data2 <- app_test %>% select_if(grepl("_MEDI",names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c("APARTMENTS_MEDI", "BASEMENTAREA_MEDI", "YEARS_BEGINEXPLUATATION_MEDI", "YEARS_BUILD_MEDI", "COMMONAREA_MEDI", 
-              "ELEVATORS_MEDI", "ENTRANCES_MEDI", "FLOORSMAX_MEDI", "FLOORSMIN_MEDI", "LANDAREA_MEDI", "LIVINGAPARTMENTS_MEDI",
-              "LIVINGAREA_MEDI", "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAREA_MEDI") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
+# # data
+# data1 <- app_train %>% select_if(grepl("_MEDI",names(.)))
+# data2 <- app_test %>% select_if(grepl("_MEDI",names(.)))
+# # str_c(a,collapse = "', '")  
+# patterns <- c("APARTMENTS_MEDI", "BASEMENTAREA_MEDI", "YEARS_BEGINEXPLUATATION_MEDI", "YEARS_BUILD_MEDI", "COMMONAREA_MEDI", 
+#               "ELEVATORS_MEDI", "ENTRANCES_MEDI", "FLOORSMAX_MEDI", "FLOORSMIN_MEDI", "LANDAREA_MEDI", "LIVINGAPARTMENTS_MEDI",
+#               "LIVINGAREA_MEDI", "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAREA_MEDI") 
+# # 欠損値補完 
+# tmp1 <- ImputeMissingValueMI(data1,patterns)
+# tmp2 <- ImputeMissingValueMI(data2,patterns)
+#   
+# # データ結合
+# app_train <- cbind(app_train,tmp1)
+# app_test <- cbind(app_test,tmp2)
 ```
 
 ### ???_MODE
 
 建物に関する諸情報(標準化済み)
 
-- factor
+- factor data
     - FONDKAPREMONT_MODE (カラムがよくわからない)
     - HOUSETYPE_MODE
     - WALLSMATERIAL_MODE
     - TOTALAREA_MODE (敷地面積?)
     - EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
-- numeric
+    
+- numeric data
     - APARTMENTS_MODE
     - BASEMENTAREA_MODE
     - YEARS_BEGINEXPLUATATION_MODE
@@ -352,9 +360,9 @@ app_test <- cbind(app_test,tmp2)
     - NONLIVINGAPARTMENTS_MODE
     - NONLIVINGAREA_MODE
 
-詳細
 - numeric: 14項目
 - factor: 5項目
+- EMERGENCYSTATE_MODE 以外保留
 
 #### factor value 
 
@@ -371,17 +379,17 @@ app_train %>%
 ```
 
 ```{r eval=FALSE}
-## impute 1
-# data
-data1 <- app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
-data2 <- app_test %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
-patterns <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueRF(data1,patterns)
-tmp2 <- ImputeMissingValueRF(data2,patterns)
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
+# ## impute 1
+# # data
+# data1 <- app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
+# data2 <- app_test %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
+# patterns <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE") 
+# # 欠損値補完 
+# tmp1 <- ImputeMissingValueRF(data1,patterns)
+# tmp2 <- ImputeMissingValueRF(data2,patterns)
+# # データ結合
+# app_train <- cbind(app_train,tmp1)
+# app_test <- cbind(app_test,tmp2)
 
 ## impute 2
 app_train <- app_train %>% 
@@ -412,32 +420,33 @@ app_train %>%
 ```
 
 ```{r eval=FALSE}
-# exclude
-tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
-# data
-data1 <- app_train %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.))) 
-data2 <- app_test %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c( "APARTMENTS_MODE", "BASEMENTAREA_MODE", "YEARS_BEGINEXPLUATATION_MODE", "YEARS_BUILD_MODE", "COMMONAREA_MODE", 
-               "ELEVATORS_MODE", "ENTRANCES_MODE", "FLOORSMAX_MODE", "FLOORSMIN_MODE", "LANDAREA_MODE", "LIVINGAPARTMENTS_MODE",
-               "LIVINGAREA_MODE", "NONLIVINGAPARTMENTS_MODE", "NONLIVINGAREA_MODE") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
+# # exclude
+# tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
+# # data
+# data1 <- app_train %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.))) 
+# data2 <- app_test %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.)))
+# # str_c(a,collapse = "', '")  
+# patterns <- c( "APARTMENTS_MODE", "BASEMENTAREA_MODE", "YEARS_BEGINEXPLUATATION_MODE", "YEARS_BUILD_MODE", "COMMONAREA_MODE", 
+#                "ELEVATORS_MODE", "ENTRANCES_MODE", "FLOORSMAX_MODE", "FLOORSMIN_MODE", "LANDAREA_MODE", "LIVINGAPARTMENTS_MODE",
+#                "LIVINGAREA_MODE", "NONLIVINGAPARTMENTS_MODE", "NONLIVINGAREA_MODE") 
+# # 欠損値補完 
+# tmp1 <- ImputeMissingValueMI(data1,patterns)
+# tmp2 <- ImputeMissingValueMI(data2,patterns)
+#   
+# # データ結合
+# app_train <- cbind(app_train,tmp1)
+# app_test <- cbind(app_test,tmp2)
 ```
 
 ### ????_CIRCLE
 
-- OBS_30_CNT_SOCIAL_CIRCLE
-- DEF_30_CNT_SOCIAL_CIRCLE
-- OBS_60_CNT_SOCIAL_CIRCLE
-- DEF_60_CNT_SOCIAL_CIRCLE
+- data list
+    - OBS_30_CNT_SOCIAL_CIRCLE
+    - DEF_30_CNT_SOCIAL_CIRCLE
+    - OBS_60_CNT_SOCIAL_CIRCLE
+    - DEF_60_CNT_SOCIAL_CIRCLE
 
--> 観測されていないなら = 0
+- 観測されていない => 0
 
 ```{r}
 app_train %>% 
@@ -471,16 +480,21 @@ app_test <- app_test %>%
 - 欠損値一人
 - 保留
 
+```{r}
+app_train %>% select(DAYS_LAST_PHONE_CHANGE) %>% table(exclude = NULL) 
+```
+
 ### AMT_???
 
 #### part1 
 
-- AMT_INCOME_TOTAL: 総収入
-- AMT_CREDIT: ローンのクレジット額
-- AMT_ANNUITY: 年金ローン
-- AMT_GOODS_PRICE: 消費者ローン
+- data list
+    - AMT_INCOME_TOTAL: 総収入
+    - AMT_CREDIT: ローンのクレジット額
+    - AMT_ANNUITY: 年金ローン
+    - AMT_GOODS_PRICE: 消費者ローン
 
-=> 3つのローンの相関関係強い, 欠損値補完に使える！！
+- 3つのローンの相関関係強い, 欠損値補完に使える！！
 
 ```{r}
 app_train %>% 
@@ -507,15 +521,16 @@ app_test <- cbind(app_test,tmp2)
 
 #### part2
 
-1. 何かの紹介件数 NA-> 0補完
-2. 関係性低い
+- data list
+    - AMT_REQ_CREDIT_BUREAU_HOUR
+    - AMT_REQ_CREDIT_BUREAU_DAY
+    - AMT_REQ_CREDIT_BUREAU_WEEK
+    - AMT_REQ_CREDIT_BUREAU_MON
+    - AMT_REQ_CREDIT_BUREAU_QRT
+    - AMT_REQ_CREDIT_BUREAU_YEAR
 
-- AMT_REQ_CREDIT_BUREAU_HOUR
-- AMT_REQ_CREDIT_BUREAU_DAY
-- AMT_REQ_CREDIT_BUREAU_WEEK
-- AMT_REQ_CREDIT_BUREAU_MON
-- AMT_REQ_CREDIT_BUREAU_QRT
-- AMT_REQ_CREDIT_BUREAU_YEAR
+- 何かの紹介件数 NA-> 0補完
+- 関係性低い
 
 ```{r}
 app_train %>% 
@@ -551,8 +566,12 @@ app_test <- app_test %>%
   mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
 ```
 
-## make new feature value 
-
-
 ## output for csv
+
+- Save the csv files in the csv_imp folder
+
+```{r eval=FALSE}
+write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv")
+write_csv(app_test,"~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv")
+```
 
