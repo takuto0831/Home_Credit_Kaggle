@@ -29,7 +29,7 @@
 
 ## script.file
  
-- function.R: 関数の詳細を記述
+- function.R: 各関数の詳細を記述
 	 
 ## submit.file
 
@@ -45,12 +45,12 @@
 
 ## csv.file
 
-- 元のデータ
+- 配布データ
 
 ## csv_imp.file
 
-- 欠損処理等を実行したもの
-- preprocess_date.Rの日付と対応づけて保存
+- 欠損処理等を実行したもの(1_Preprocess)
+- 配布データを結合したもの(2_Combine)
 
 # Layered Directory
  
