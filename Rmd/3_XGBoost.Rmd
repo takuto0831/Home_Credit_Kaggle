@@ -12,8 +12,6 @@ output:
 
 ## To do list
 
-- 少数データにより xgboost model 構築
-    - モデルを理解する
 - XGBoostについて
     - xgboostの各種パラメータおよび, cvにおける意義を考える
     - 並列処理できるのか
@@ -28,7 +26,7 @@ output:
 - [xgboostにおけるクロスバリデーション](http://puyokw.hatenablog.com/entry/2015/04/29/000557)
 - [xgboostの欠損値処理について](https://medium.com/rv-data/missing-data-xgboost-and-r-part-2-9e47924d935a)
 
-# Setting
+# Setting{.tabset .tabset-fade .tabset-pills}
 
 ## knitr option
 
@@ -67,9 +65,6 @@ library(doParallel)
 library(DT)
 ```
 
-## Load funciton
-
-
 ## read csv
 
 ```{r}
@@ -77,35 +72,16 @@ library(DT)
 # mutate_if(is.character, funs(factor(.) %>% as.integer())) 
 
 # 訓練データ, テストデータ
-app_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
     mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-
-# クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-bureau_balance <- read_csv("csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-
-# 過去の利用データ
-previous_app <- read_csv("csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-install_pay <- read_csv("csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-pos_cash <- read_csv("csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-
-# submit style file
-# sample_submission <- read_csv("csv/sample_submission.csv")
 ```
 
 # XGBoost
 
-- xgboost package による実装
-- caret package による実装
+- xgboost packageを用いて, クロスバリデーションを行う
+- パラメータチューニングは最終的に行う
 
 ## Preprocessing 
 
@@ -119,17 +95,7 @@ train_data <- app_train %>%
 test_data <- app_test
 ```
 
-```{r impute data}
-# train data
-train_data <- app_train_imp %>% 
-  select(-SK_ID_CURR)
-
-# test data
-test_data <- app_test_imp
-```
-
-
-## `xgbosst` pacakge
+## xgboost package
 
 ### model
 
@@ -179,13 +145,17 @@ xgb_test <-
           early_stopping_rounds = 50 )
 ```
 
-### predict
+### Visualize important value
 
 ```{r}
 # 重要なパラメータの可視化
 xgb.importance(model = xgb_test) %>% 
   xgb.plot.importance(top_n = 30)
+```
 
+### Predict
+
+```{r}
 # 予測関数
 pred_test <- predict(xgb_test,data.matrix(test_data %>% select(-SK_ID_CURR)))
 ```
@@ -197,7 +167,7 @@ pred_test <- predict(xgb_test,data.matrix(test_data %>% select(-SK_ID_CURR)))
 submit <- data.frame(test_data,TARGET = pred_test) %>% 
   select(SK_ID_CURR,TARGET)
 # 結果の確認
-DT::datatable(submit,rownames = FALSE)
+# DT::datatable(submit,rownames = FALSE)
 ``` 
 
 ### export csv 
@@ -210,11 +180,11 @@ path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
 write_csv(submit,path = path_name)
 ```
 
-## `caret` package
+## caret package
 
 ### model 
 
-```{r}
+```{r,eval=FALSE}
 # hyper-parameters to be extracted with 10-fold cross validation repeated 2 times
 trControl <- trainControl(method="cv", 
                           number=5, 
@@ -255,27 +225,7 @@ print(model_xgb)
 - 予測がマイナスの値を取ることがある.
 - 0=1のルールを考慮できていない??
 
-```{r}
+```{r eval=FALSE}
 pred_caret <- predict(model_xgb, data.matrix(test_data %>% select(-SK_ID_CURR)))
-```
-
-## make Submit file
-
-```{r}
-# submit file の構築
-submit_caret <- data.frame(test_data,TARGET = pred_caret) %>% 
-  select(SK_ID_CURR,TARGET)
-# 結果の確認
-DT::datatable(submit_caret,rownames = FALSE)
-``` 
-
-### export csv 
-
-```{r}
-# file name + submit date
-file_name <- "test-submit-caret"
-path_name <- paste("submit/",file_name,Sys.Date(),sep = "")
-# export
-write_csv(submit_caret,path = path_name)
 ```
 
