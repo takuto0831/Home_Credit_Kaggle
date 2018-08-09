@@ -37,13 +37,13 @@ output:
     - About: サンプルで融資を受けているお客様のホームクレジットローンのすべての以前のアプリケーション
 - installments_payment.csv (8 variables)
     - Key variable: SK_ID_CURR, SK_ID_PREV
-    - About: 
+    - About: ローンの各月の支払い履歴
 - POS_CASH_balance.csv (8 variables)
     - Key variable: SK_ID_CURR, SK_ID_PREV
-    - About: 
+    - About: 各月毎のクレジット履歴,月次バランス
 - credit_card_balance.csv (23 variavbles)
     - Key variable: SK_ID_CURR, SK_ID_PREV
-    - About: 
+    - About: 各月毎のクレジットカード履歴,月次バランス
 
 ## Toc
 
