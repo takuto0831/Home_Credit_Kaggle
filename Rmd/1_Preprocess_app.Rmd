@@ -32,7 +32,6 @@ options(max.print="200", digits=5)
 # Global options
 library(knitr)
 opts_chunk$set(echo=TRUE,
-               cache = TRUE,
 	             prompt=FALSE,
                tidy=TRUE,
                comment=NA,
@@ -75,28 +74,26 @@ na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する.
 
 ```{r}
 # 訓練データ, テストデータ
-app_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
     mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 ```
 
 # Preprocess
 
 - impute missing value and add column (important !!!)
-- make new feature value 
 - output for csv
 
 ## impute missing values{.tabset .tabset-fade .tabset-pills}
 
-- 各テーブルの欠損値を確認, 詳細をデータ説明シートに記述
-- 欠損値補完に使えそうな値の調査および欠損値補完の実施
-- 各テーブルごとに行う
-- 追加したカラムには `_imp`を加える (_impで列を削除すれば, 元データが手に入る)
+- Check for imputation values
+- Describe the details on the explanation sheet
+- Add `_imp` to the added column
 
 ### CODE_GENDER 
 
-- 少ないので放置
+- 少ないので放置 (欠損値:4つ)
 
 ```{r}
 app_train %>% 
@@ -207,6 +204,21 @@ app_train %>%
   ggpairs()
 ```
 
+```{r eval=FALSE}
+# data
+data1 <- app_train %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INCOME_TOTAL"), collapse="|"),names(.)))
+data2 <- app_test %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INCOME_TOTAL"), collapse="|"),names(.)))
+# str_c(a,collapse = "', '")  
+patterns <- c("EXT_SOURCE_1","EXT_SOURCE_2","EXT_SOURCE_3")
+# 欠損値補完 
+tmp1 <- ImputeMissingValueMI(data1[1:1000,],patterns)
+tmp2 <- ImputeMissingValueMI(data2,patterns)
+  
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
 ### ???_AVG
 
 - APARTMENTS_AVG
@@ -255,7 +267,7 @@ patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG
 # 欠損値補完 
 tmp1 <- ImputeMissingValueMI(data1,patterns)
 tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
+
 # データ結合
 app_train <- cbind(app_train,tmp1)
 app_test <- cbind(app_test,tmp2)
