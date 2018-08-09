@@ -116,8 +116,6 @@ library(psych)
 library(fastcluster)
 ```
 
-
-
 ## Load funciton
 
 ```{r cache=FALSE}
@@ -131,530 +129,31 @@ na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する. (applicat
 
 - convert charcter type into factor type
 
-### row data
-
 ```{r}
 # 訓練データ, テストデータ
-app_train <- read_csv("csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
     mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
+bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-bureau_balance <- read_csv("csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
+bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # 過去の利用データ
-previous_app <- read_csv("csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
+previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-install_pay <- read_csv("csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
+install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-pos_cash <- read_csv("csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
+pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
-credit_card <- read_csv("csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
+credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 
 # submit style file
-# sample_submission <- read_csv("csv/sample_submission.csv")
-```
-
-### imputed data
-
-```{r}
-
-```
-
-
-# Preprocess
-
-- convert to factor type of binary variable ( not need )
-- impute missing value and add column (important !!!)
-- make new feature value 
-- combine all tables
-
-## convert to factor type of binary variable 
-
-- xgboost でエラー起きる. 保留
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-app_test <- app_test %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-bureau <- bureau %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-bureau_balance <- bureau_balance %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-previous_app <- previous_app %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-install_pay <- install_pay %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-pos_cash <- pos_cash %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-credit_card <- credit_card %>% 
-  mutate_if(function(col) CheckBinaryColumn(col) && !is.factor(col),funs(factor(.)))
-```
-
-## impute missing values
-
-- 各テーブルの欠損値を確認, 詳細をデータ説明シートに記述
-- 欠損値補完に使えそうな値の調査および欠損値補完の実施
-- 各テーブルごとに行う
-- 追加したカラムには `_imp`を加える (_impで列を削除すれば, 元データが手に入る)
-
-### app_train and app_test {.tabset .tabset-fade .tabset-pills}
-
-#### CODE_GENDER 
-
-- 少ないので放置
-
-```{r}
-app_train %>% 
-  select(CODE_GENDER) %>% 
-  table(exclude = NULL)
-
-app_test %>% 
-  select(CODE_GENDER) %>% 
-  table(exclude = NULL)
-```
-
-#### NAME_TYPE_SUITE
-
-- 同行者の情報
-- 無記載 = 同行者なしと考える
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
-app_test <- app_test %>% 
-  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
-```
-
-#### OCCUPATION_TYPE
-
-- other, フリーターの項目がない
-- 所属=NA and 職業=NA -> 無職,無所属
-- 所属=NA, 職業=NA -> other
-
-```{r}
-app_train %>% select(OCCUPATION_TYPE) %>% table()
-```
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
-                                      ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
-  mutate(OCCUPATION_TYPE_imp = OCCUPATION_TYPE_imp %>% as.factor())
-
-app_test <- app_test %>% 
-  mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
-                                      ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
-  mutate(OCCUPATION_TYPE_imp = OCCUPATION_TYPE_imp %>% as.factor())
-```
-
-#### ORGANIZATION_TYPE 
-
-- 所属=NAはほぼ, 職業=NA (例外は2件のみ)
-- 所属=NA and 職業=NA -> 無職,無所属
-- 所属=NA, 職業=NA -> other
-
-```{r}
-app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) 
-#app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) 
-```
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
-                                      ifelse(is.na(OCCUPATION_TYPE),"Unemployed","Other"))) %>% 
-  mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
-
-app_test <- app_test %>% 
-  mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
-                                      ifelse(is.na(OCCUPATION_TYPE),"Unemployed","other"))) %>% 
-  mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
-```
-
-#### OWN_CAR_AGE
-
-- 車の年数
-- 車の所持データとほぼ一致(5件: 車保持かつ年数不明があった)
-- 放置
-
-```{r}
-app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL) 
-```
-
-#### CNT_FAM_MEMBERS
-
-- 家族の人数
-- 欠損値は一人と考える
-
-```{r}
-# 子どもの人数 / 家族の人数
-app_train %>% select(CNT_CHILDREN,CNT_FAM_MEMBERS) %>% table(exclude = NULL) 
-```
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
-app_test <- app_test %>% 
-  mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
-```
-
-#### EXT_SOURCE_??
-
-何かの外部データ, 相関ない, 影響が強いので要検証
-
-- EXT_SOURCE_1
-- EXT_SOURCE_2
-- EXT_SOURCE_3
-
-```{r}
-app_train %>% 
-  select(EXT_SOURCE_1,EXT_SOURCE_2,EXT_SOURCE_3,AMT_CREDIT) %>% 
-  na.omit() %>% 
-  ggpairs()
-```
-
-#### ???_AVG
-
-- APARTMENTS_AVG
-- BASEMENTAREA_AVG
-- YEARS_BEGINEXPLUATATION_AVG
-- YEARS_BUILD_AVG
-- COMMONAREA_AVG
-- ELEVATORS_AVG
-- ENTRANCES_AVG
-- FLOORSMAX_AVG
-- FLOORSMIN_AVG
-- LANDAREA_AVG
-- LIVINGAPARTMENTS_AVG
-- LIVINGAREA_AVG
-- NONLIVINGAPARTMENTS_AVG
-- NONLIVINGAREA_AVG
-
-詳細
-
-- 住居等に関数正規化された情報
-- 平均項目
-- 14項目
-
-```{r}
-app_train %>% 
-  select_if(grepl("_AVG",names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  qgraph(edge.labels=T)
-
-app_train %>% 
-  select_if(grepl("_AVG",names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  cor.plot(numbers = TRUE)
-```
-
-```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl("_AVG",names(.)))
-data2 <- app_test %>% select_if(grepl("_AVG",names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG", "COMMONAREA_AVG",
-              "ELEVATORS_AVG", "ENTRANCES_AVG", "FLOORSMAX_AVG", "FLOORSMIN_AVG", "LANDAREA_AVG","LIVINGAPARTMENTS_AVG",
-              "LIVINGAREA_AVG", "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAREA_AVG") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-#### ???_MEDI
-
-- APARTMENTS_MEDI
-- BASEMENTAREA_MEDI
-- YEARS_BEGINEXPLUATATION_MEDI
-- YEARS_BUILD_MEDI
-- COMMONAREA_MEDI
-- ELEVATORS_MEDI
-- ENTRANCES_MEDI
-- FLOORSMAX_MEDI
-- FLOORSMIN_MEDI
-- LANDAREA_MEDI
-- LIVINGAPARTMENTS_MEDI
-- LIVINGAREA_MEDI
-- NONLIVINGAPARTMENTS_MEDI
-- NONLIVINGAREA_MEDI
-
-詳細
-- 住居等に関数正規化された情報
-- 中央値
-- 14項目
-
-```{r}
-app_train %>% 
-  select_if(grepl("_MEDI",names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  qgraph(edge.labels=T)
-
-app_train %>% 
-  select_if(grepl("_MEDI",names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  cor.plot(numbers = TRUE)
-```
-
-```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl("_MEDI",names(.)))
-data2 <- app_test %>% select_if(grepl("_MEDI",names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c("APARTMENTS_MEDI", "BASEMENTAREA_MEDI", "YEARS_BEGINEXPLUATATION_MEDI", "YEARS_BUILD_MEDI", "COMMONAREA_MEDI", 
-              "ELEVATORS_MEDI", "ENTRANCES_MEDI", "FLOORSMAX_MEDI", "FLOORSMIN_MEDI", "LANDAREA_MEDI", "LIVINGAPARTMENTS_MEDI",
-              "LIVINGAREA_MEDI", "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAREA_MEDI") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-#### ???_MODE
-
-建物に関する諸情報(標準化済み)
-
-- factor
-    - FONDKAPREMONT_MODE (カラムがよくわからない)
-    - HOUSETYPE_MODE
-    - WALLSMATERIAL_MODE
-    - TOTALAREA_MODE (敷地面積?)
-    - EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
-- numeric
-    - APARTMENTS_MODE
-    - BASEMENTAREA_MODE
-    - YEARS_BEGINEXPLUATATION_MODE
-    - YEARS_BUILD_MODE
-    - COMMONAREA_MODE
-    - ELEVATORS_MODE
-    - ENTRANCES_MODE
-    - FLOORSMAX_MODE
-    - FLOORSMIN_MODE
-    - LANDAREA_MODE
-    - LIVINGAPARTMENTS_MODE
-    - LIVINGAREA_MODE
-    - NONLIVINGAPARTMENTS_MODE
-    - NONLIVINGAREA_MODE
-
-詳細
-- numeric: 14項目
-- factor: 5項目
-
-##### factor value 
-
-```{r}
-app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
-app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
-app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) 
-app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
-
-app_train %>% 
-  select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE) %>% 
-  na.omit() %>% 
-  ggpairs()
-```
-
-```{r eval=FALSE}
-## impute 1
-# data
-data1 <- app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
-data2 <- app_test %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
-patterns <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueRF(data1,patterns)
-tmp2 <- ImputeMissingValueRF(data2,patterns)
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-
-## impute 2
-app_train <- app_train %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
-app_test <- app_test %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
-```
-
-##### numeric value
-
-```{r}
-tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
-app_train %>% 
-  select_if(grepl("_MODE",names(.))) %>% 
-  select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  qgraph(edge.labels=T)
-
-app_train %>% 
-  select_if(grepl("_MODE",names(.))) %>% 
-  select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  cor.plot(numbers = TRUE)
-```
-
-```{r eval=FALSE}
-# exclude
-tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
-# data
-data1 <- app_train %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.))) 
-data2 <- app_test %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c( "APARTMENTS_MODE", "BASEMENTAREA_MODE", "YEARS_BEGINEXPLUATATION_MODE", "YEARS_BUILD_MODE", "COMMONAREA_MODE", 
-               "ELEVATORS_MODE", "ENTRANCES_MODE", "FLOORSMAX_MODE", "FLOORSMIN_MODE", "LANDAREA_MODE", "LIVINGAPARTMENTS_MODE",
-               "LIVINGAREA_MODE", "NONLIVINGAPARTMENTS_MODE", "NONLIVINGAREA_MODE") 
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-#### ????_CIRCLE
-
-- OBS_30_CNT_SOCIAL_CIRCLE
-- DEF_30_CNT_SOCIAL_CIRCLE
-- OBS_60_CNT_SOCIAL_CIRCLE
-- DEF_60_CNT_SOCIAL_CIRCLE
-
--> 観測されていないなら = 0
-
-```{r}
-app_train %>% 
-  select_if(grepl("_CIRCLE",names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  qgraph(edge.labels=T)
-
-app_train %>% 
-  select_if(grepl("_CIRCLE",names(.))) %>% 
-  na.omit() %>%
-  cor() %>% 
-  cor.plot(numbers = TRUE)
-```
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(OBS_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_60_CNT_SOCIAL_CIRCLE),0,OBS_60_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_60_CNT_SOCIAL_CIRCLE),0,DEF_60_CNT_SOCIAL_CIRCLE )) 
-app_test <- app_test %>% 
-  mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(OBS_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_60_CNT_SOCIAL_CIRCLE),0,OBS_60_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_60_CNT_SOCIAL_CIRCLE),0,DEF_60_CNT_SOCIAL_CIRCLE )) 
-```
-
-#### DAYS_LAST_PHONE_CHANGE
-
-- 欠損値一人
-- 保留
-
-#### AMT_???
-
-##### part1 
-
-- AMT_INCOME_TOTAL: 総収入
-- AMT_CREDIT: ローンのクレジット額
-- AMT_ANNUITY: 年金ローン
-- AMT_GOODS_PRICE: 消費者ローン
-
-=> 3つのローンの相関関係強い, 欠損値補完に使える！！
-
-```{r}
-app_train %>% 
-  select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
-  na.omit() %>% 
-  ggpairs()
-```
-
-```{r eval=FALSE}
-# 補完に使用するデータ
-data1 <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
-data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
-# 欠損値を含むデータ
-patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
-
-# 欠損値補完 (1 iter : 2000 second)
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-##### part2
-
-1. 何かの紹介件数 NA-> 0補完
-2. 関係性低い
-
-- AMT_REQ_CREDIT_BUREAU_HOUR
-- AMT_REQ_CREDIT_BUREAU_DAY
-- AMT_REQ_CREDIT_BUREAU_WEEK
-- AMT_REQ_CREDIT_BUREAU_MON
-- AMT_REQ_CREDIT_BUREAU_QRT
-- AMT_REQ_CREDIT_BUREAU_YEAR
-
-```{r}
-app_train %>% 
-  select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
-         AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
-  na.omit() %>%
-  cor() %>% 
-  qgraph(edge.labels=T)
-
-app_train %>% 
-  select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
-         AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
-  na.omit() %>%
-  cor() %>% 
-  cor.plot(numbers = TRUE)
-```
-
-```{r eval=FALSE}
-app_train <- app_train %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_WEEK_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_WEEK),0,AMT_REQ_CREDIT_BUREAU_WEEK)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_MON_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_MON),0,AMT_REQ_CREDIT_BUREAU_MON)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_QRT_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_QRT),0,AMT_REQ_CREDIT_BUREAU_QRT)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
-
-app_test <- app_test %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_WEEK_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_WEEK),0,AMT_REQ_CREDIT_BUREAU_WEEK)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_MON_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_MON),0,AMT_REQ_CREDIT_BUREAU_MON)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_QRT_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_QRT),0,AMT_REQ_CREDIT_BUREAU_QRT)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
-```
-
-## combine all tables
-
-```{r}
-
+# sample_submission <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/sample_submission.csv")
 ```
 
 # Explatory data analysis
@@ -772,52 +271,53 @@ glimpse(credit_card)
 
 - overview of a data frame
 - so good ??? [knitr::kable(skimr::skim_to_wide(iris))]
+
 ### app_train
 
 ```{r}
-skim(app_train) %>% kable()
+skimr::skim_to_wide(app_train) %>% kable()
 ```
 
 ### app_test
 
 ```{r}
-skim(app_test) %>% kable()
+skimr::skim_to_wide(app_test) %>% kable()
 ```
 
 ### bureau
 
 ```{r}
-skim(bureau) %>% kable()
+skimr::skim_to_wide(bureau) %>% kable()
 ```
 
 ### bureau_balance
 
 ```{r}
-skim(bureau_balance) %>% kable()
+skimr::skim_to_wide(bureau_balance) %>% kable()
 ```
 
 ### previous_app
 
 ```{r}
-skim(previous_app) %>% kable()
+skimr::skim_to_wide(previous_app) %>% kable()
 ```
 
 ### install_pay
 
 ```{r}
-skim(install_pay) %>% kable()
+skimr::skim_to_wide(install_pay) %>% kable()
 ```
 
 ### pos_cash
 
 ```{r}
-skim(pos_cash) %>% kable()
+skimr::skim_to_wide(pos_cash) %>% kable()
 ```
 
 ### credit_card
 
 ```{r}
-skim(credit_card) %>% kable()
+skimr::skim_to_wide(credit_card) %>% kable()
 ```
 
 ## summarytools package{.tabset .tabset-fade .tabset-pills}
@@ -884,12 +384,12 @@ par(mar = c(3,3,3,7))
 plot(a, horiz =  TRUE,  nodePar = list(cex = .007))
 ```
 
-## Check TARGET = 1 users
+## Check users
 
 - TARGET=1となる値の確認
-- あんまりうまくいかなそう
+- あまり関係見られない??
 
-```{r eval=FALSE}
+```{r}
 app_train %>% 
   filter(TARGET == 1) %>% 
   select(FLAG_OWN_CAR)  %>% 
@@ -930,17 +430,5 @@ application_train %>%
   select(AMT_INCOME_TOTAL,AMT_CREDIT,AMT_ANNUITY,AMT_GOODS_PRICE) %>% 
   ggpairs(upper = list(continuous = wrap("cor", size = 10)),                    
           lower = list(continuous = "smooth"))
-
 ```
-
-
-```{r eval=FALSE}
-application_train[2:6,] %>%
-  select(-SK_ID_CURR) %>% 
-  ggpairs()
-```
-
-
-
-
 
