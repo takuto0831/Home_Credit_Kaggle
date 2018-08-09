@@ -112,7 +112,7 @@ app_test %>%
 - 同行者の情報
 - 無記載 = 同行者なしと考える
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 app_train <- app_train %>% 
   mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
 app_test <- app_test %>% 
@@ -130,7 +130,7 @@ app_train %>% select(OCCUPATION_TYPE) %>% table()
 app_test %>% select(OCCUPATION_TYPE) %>% table()
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 app_train <- app_train %>% 
   mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
                                       ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
@@ -153,7 +153,7 @@ app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL
 #app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) 
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 app_train <- app_train %>% 
   mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
                                       ifelse(is.na(OCCUPATION_TYPE),"Unemployed","Other"))) %>% 
@@ -185,7 +185,7 @@ app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL)
 app_train %>% select(CNT_CHILDREN,CNT_FAM_MEMBERS) %>% table(exclude = NULL) 
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 app_train <- app_train %>% 
   mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
 app_test <- app_test %>% 
@@ -210,7 +210,7 @@ app_train %>%
   ggpairs()
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # data
 data1 <- app_train %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INCOME_TOTAL"), collapse="|"),names(.)))
 data2 <- app_test %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INCOME_TOTAL"), collapse="|"),names(.)))
@@ -262,7 +262,7 @@ app_train %>%
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # # data
 # data1 <- app_train %>% select_if(grepl("_AVG",names(.)))
 # data2 <- app_test %>% select_if(grepl("_AVG",names(.)))
@@ -316,7 +316,7 @@ app_train %>%
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # # data
 # data1 <- app_train %>% select_if(grepl("_MEDI",names(.)))
 # data2 <- app_test %>% select_if(grepl("_MEDI",names(.)))
@@ -378,7 +378,7 @@ app_train %>%
   ggpairs()
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # ## impute 1
 # # data
 # data1 <- app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
@@ -419,7 +419,7 @@ app_train %>%
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # # exclude
 # tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
 # # data
@@ -462,7 +462,7 @@ app_train %>%
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 app_train <- app_train %>% 
   mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
   mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
@@ -503,7 +503,7 @@ app_train %>%
   ggpairs()
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 # 補完に使用するデータ
 data1 <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
 data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
@@ -548,7 +548,7 @@ app_train %>%
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 app_train <- app_train %>% 
   mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
   mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
@@ -570,7 +570,7 @@ app_test <- app_test %>%
 
 - Save the csv files in the csv_imp folder
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv")
 write_csv(app_test,"~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv")
 ```
