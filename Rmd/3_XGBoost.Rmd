@@ -91,13 +91,56 @@ train_data <- app_train %>%
 test_data <- app_test
 ```
 
-## xgboost package
+## xgboost function
 
-### model
-
-- parameter set
+- parameter setting
 - 10-fold cross-validation
-- xgboost
+- execute xgboost model
+- make submit file
+
+```{r}
+MyXgboost <- function(xgb_params,file_name){
+  # xgboost cross validation to choice best parameter
+  xgb_cv <- 
+    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+                              label = train_data$TARGET),
+           params = xgb_params,
+           missing = NA,
+           nfold = 10, 
+           nrounds = 1000,
+           verbose = TRUE,
+           prediction = TRUE,                                           # return the prediction using the final model 
+           showsd = TRUE,                                               # standard deviation of loss across folds
+           stratified = TRUE, 
+           print_every_n = 5,
+           early_stopping_rounds = 50 )
+  # xgboost modeling  
+  xgb_model <- 
+    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+                               label = train_data$TARGET),
+            params = xgb_params,
+            nrounds = xgb_cv$best_iteration, # max number of trees to build
+            verbose = TRUE,                                         
+            print_every_n = 5,
+            early_stopping_rounds = 50 )
+  # Visualize important value
+  xgb.importance(model = xgb_model) %>% 
+    xgb.plot.importance(top_n = 50) %>% 
+    print()
+  # predict
+  pred_test <- predict(xgb_model,data.matrix(test_data %>% select(-SK_ID_CURR)))
+
+  # make submit style
+  submit <- data.frame(test_data,TARGET = pred_test) %>% 
+    select(SK_ID_CURR,TARGET)
+  # file name + submit date
+  path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),sep = "")
+  # export
+  write_csv(submit,path = path_name)
+  }
+```
+
+## execute xgboost model
 
 ```{r}
 # xgboost fitting with arbitrary parameters
@@ -116,71 +159,13 @@ xgb_params = list(
   alpha = 0,
   lambda = 0
 )
-
-# xgboost cross validation to choice best parameter
-xgb_cv <- 
-  xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
-                            label = train_data$TARGET),
-         params = xgb_params,
-         missing = NA,
-         nfold = 10, 
-         nrounds = 1000,
-         verbose = TRUE,
-         prediction = TRUE,                                           # return the prediction using the final model 
-         showsd = TRUE,                                               # standard deviation of loss across folds
-         stratified = TRUE, 
-         print_every_n = 5,
-         early_stopping_rounds = 50 )
-
-#xgboost 
-xgb_test <- 
-  xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
-                             label = train_data$TARGET),
-          params = xgb_params,
-          nrounds = xgb_cv$best_iteration, # max number of trees to build
-          verbose = TRUE,                                         
-          print_every_n = 5,
-          early_stopping_rounds = 50 )
-```
-
-### Visualize important value
-
-```{r}
-# 重要なパラメータの可視化
-xgb.importance(model = xgb_test) %>% 
-  xgb.plot.importance(top_n = 50)
-```
-
-### Predict
-
-```{r}
-# 予測関数
-pred_test <- predict(xgb_test,data.matrix(test_data %>% select(-SK_ID_CURR)))
-```
-
-### make Submit file
-
-```{r}
-# submit file の構築
-submit <- data.frame(test_data,TARGET = pred_test) %>% 
-  select(SK_ID_CURR,TARGET)
-# 結果の確認
-# DT::datatable(submit,rownames = FALSE)
-``` 
-
-### export csv 
-
-```{r}
-# file name + submit date
+# set file name
 file_name <- "impute-missing-value-xgb2-"
-path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),sep = "")
-# export
-write_csv(submit,path = path_name)
+# execute xgboost
+MyXgboost(xgb_params,file_name)
 ```
 
 ## caret package
-
-### model 
 
 ```{r,eval=FALSE}
 # # hyper-parameters to be extracted with 10-fold cross validation repeated 2 times
@@ -216,14 +201,10 @@ write_csv(submit,path = path_name)
 # stopCluster(cl)
 # # result
 # print(model_xgb)
-```
 
-### predict
-
-- 予測がマイナスの値を取ることがある.
-- 0=1のルールを考慮できていない??
-
-```{r eval=FALSE}
+# # predict
+# # 予測がマイナスの値を取ることがある.
+# # 0=1のルールを考慮できていない??
 # pred_caret <- predict(model_xgb, data.matrix(test_data %>% select(-SK_ID_CURR)))
 ```
 
