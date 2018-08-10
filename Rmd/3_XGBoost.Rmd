@@ -93,13 +93,20 @@ test_data <- app_test
 
 ## xgboost function
 
-- parameter setting
-- 10-fold cross-validation
-- execute xgboost model
-- make submit file
+- XgboostPred: 
+    - parameter setting
+    - 10-fold cross-validation
+    - execute xgboost model
+    - make submit file
+- XgboostTune:
+    - parameter setting
+    - 10-fold cross-validation
+    - output param and best iter
+    - combine by rbind
 
 ```{r}
-MyXgboost <- function(xgb_params,file_name){
+XgboostPred <- function(xgb_params,file_name,train_data,test_data){
+  set.seed(831)
   # xgboost cross validation to choice best parameter
   xgb_cv <- 
     xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
@@ -107,13 +114,13 @@ MyXgboost <- function(xgb_params,file_name){
            params = xgb_params,
            missing = NA,
            nfold = 10, 
-           nrounds = 1000,
+           nrounds = 2000,
            verbose = TRUE,
            prediction = TRUE,                                           # return the prediction using the final model 
            showsd = TRUE,                                               # standard deviation of loss across folds
            stratified = TRUE, 
-           print_every_n = 5,
-           early_stopping_rounds = 50 )
+           print_every_n = 10,
+           early_stopping_rounds = 200 )
   # xgboost modeling  
   xgb_model <- 
     xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
@@ -121,11 +128,11 @@ MyXgboost <- function(xgb_params,file_name){
             params = xgb_params,
             nrounds = xgb_cv$best_iteration, # max number of trees to build
             verbose = TRUE,                                         
-            print_every_n = 5,
-            early_stopping_rounds = 50 )
+            print_every_n = 10,
+            early_stopping_rounds = 200 )
   # Visualize important value
   xgb.importance(model = xgb_model) %>% 
-    xgb.plot.importance(top_n = 50) %>% 
+    xgb.plot.importance(top_n = 30) %>% 
     print()
   # predict
   pred_test <- predict(xgb_model,data.matrix(test_data %>% select(-SK_ID_CURR)))
@@ -137,32 +144,90 @@ MyXgboost <- function(xgb_params,file_name){
   path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),sep = "")
   # export
   write_csv(submit,path = path_name)
+}
+
+XgboostTune <- function(params, train_data){
+  # function for as.list 
+  one_entry <- function(x) {
+    for (i in length(x)) attr(x[[i]], "names") <- NULL
+    return(x)
   }
+  xgb_params <- params %>% 
+    mutate_if(is.factor, funs(as.character(.))) %>% 
+    lapply(FUN=one_entry) 
+  # set seed
+  set.seed(831)
+  # xgboost cross validation to choice best parameter
+  xgb_cv <- 
+    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+                              label = train_data$TARGET),
+           params = xgb_params,
+           missing = NA,
+           nfold = 10, 
+           nrounds = 2000,
+           verbose = TRUE,
+           prediction = TRUE,                                           # return the prediction using the final model 
+           showsd = TRUE,                                               # standard deviation of loss across folds
+           stratified = TRUE, 
+           print_every_n = 10,
+           early_stopping_rounds = 200 )
+  best <- xgb_cv$best_iteration
+  mat <- xgb_cv$evaluation_log
+  xgb_params %>% 
+    as.data.frame() %>% 
+    cbind(mat[best,]) %>% 
+    return()
+}
 ```
 
 ## execute xgboost model
 
-```{r}
+- test 
+
+```{r eval=FALSE}
 # xgboost fitting with arbitrary parameters
 xgb_params = list(
   objective = "binary:logistic", # binary classification
   booster = "gbtree",
   eval_metric = "auc",
-  nthread = 4,
-  eta = 0.03,
-  max_depth = 7,
-  min_child_weight = 30,
+  nthread = 8,
+  eta = 0.025,
+  max_depth = 6,
+  min_child_weight = 20,
   gamma = 0,
   subsample = 0.85,
   colsample_bytree = 0.7,
   colsample_bylevel = 0.632,
   alpha = 0,
-  lambda = 0
+  lambda = 0.05
 )
 # set file name
 file_name <- "impute-missing-value-xgb2-"
 # execute xgboost
-MyXgboost(xgb_params,file_name)
+XgboostPred(xgb_params,file_name,train_data,test_data)
+```
+
+## xgboost parameter tuning
+
+```{r}
+# xgboost fitting with arbitrary parameters
+xgbGrid <- expand.grid(
+  objective = "binary:logistic", # binary classification
+  booster = "gbtree",
+  eval_metric = "auc",
+  nthread = c(8),
+  max_depth = c(6,7,8,9,10),
+  eta = c(0.05, 0.1),
+  gamma = c(0.01),
+  subsample = c(0.85),
+  min_child_weight = c(20),
+  colsample_bytree = c(0.75),
+  colsample_bylevel = c(0.632),
+  alpha = c(0),
+  lambda = c(0.05))
+
+# execute xgboost
+tmp <- XgboostTune(params = xgbGrid[1,],train_data[1:1000,])
 ```
 
 ## caret package
