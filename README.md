@@ -30,6 +30,7 @@
 ## script.file
  
 - function.R: 各関数の詳細を記述
+- makedummies.R: factor値をダミー変数化する関数
 	 
 ## submit.file
 
@@ -83,11 +84,9 @@
 │   └── sample_submission.csv
 ├── csv_imp
 ├── script
+│   ├── 
 │   └── function.R
 └── submit
-    ├── easy-preprocess-xgb-best-iter-2018-07-25
-    ├── easy-preprocess-xgb-best-iter-2018-07-26
-    ├── easy-preprocess-xgb-max-iter-2018-07-25
-    └── test-submit-xgb2018-07-21
+
 ```
 
