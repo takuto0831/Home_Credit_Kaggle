@@ -13,11 +13,13 @@ output:
 - bureau.csv (17 variables)
     - Key variable: SK_ID_CURR, SK_ID_BUREAU 
     - About: 以前使用していた, 融資の履歴
+    - Credit Bureau: 信用調査所
 - bureau_balance.csv (3 variables)
     - Key variable: SK_ID_BUREAU
     - About: `bureau.csv`の補助データ
     - MONTHS_BALANCE: 利用日に対応した, 月次のバランス?
-    - STATUS: 月次のステータス, (active, closed, DPD0-30,… [C means closed, X means status unknown, 0 means no DPD, 1 means maximal did during month between 1-30, 2 means DPD 31-60,… 5 means DPD 120+ or sold or written off ] )
+    - STATUS: 月次のステータス, (active, closed, DPD0-30,… [C means closed, X means status unknown, 0 means no DPD, 1 means maximal did during month between 1-30, 2 means DPD 31-60,
+    3 means DPD 61-90, 4 means DPD 91-120, 5 means DPD 120+ or sold or written off ] )
 
 # Setting{.tabset .tabset-fade .tabset-pills}
 
@@ -68,6 +70,7 @@ library(fastcluster)
 
 ```{r cache=FALSE}
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 ```
 
 ## read csv
@@ -98,15 +101,75 @@ bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau_balance.csv"
     - データ特性に従って欠損値を推定
     - 多重代入法などのアルゴリムに従って, 欠損値を推定
 
+### DAYS_CREDIT_ENDDATE 
+
+```{r}
+bureau %>%
+  select(DAYS_CREDIT) %>% 
+  hist()
+bureau %>% 
+  filter(is.na(DAYS_CREDIT_ENDDATE)) %>% 
+  select(DAYS_CREDIT) %>% 
+  hist()
+bureau %>% 
+  filter(is.na(DAYS_CREDIT_ENDDATE)) %>% 
+  select(CREDIT_ACTIVE) %>% 
+  table()
+```
+
 ## add new column{.tabset .tabset-fade .tabset-pills}
 
 - 新しい特徴量を作成する
+
+### bureau_balance
+
+```{r}
+tmp1 <- bureau_balance %>% 
+  filter(STATUS == "C") %>% 
+  group_by(SK_ID_BUREAU) %>%
+  summarise(STATUS_C_add = n())
+
+tmp2 <- bureau_balance %>% 
+  filter(STATUS == "X") %>% 
+  group_by(SK_ID_BUREAU) %>%
+  summarise(STATUS_X_add = n())
+
+tmp3 <- bureau_balance %>% 
+  mutate_if(is.factor, funs(as.numeric(.))) %>% 
+  filter(STATUS < 7) %>% 
+  mutate(STATUS = STATUS - 1) %>% 
+  group_by(SK_ID_BUREAU) %>% 
+  summarise(STATUS_MEAN_add = mean(STATUS))
+
+tmp4 <- bureau_balance %>% 
+  group_by(SK_ID_BUREAU) %>%
+  summarise(MONTHS_BALANCE_MIN_add = min(MONTHS_BALANCE),
+            MONTHS_BALANCE_MAX_add = max(MONTHS_BALANCE))
+
+# combine
+bureau <- bureau %>% 
+  left_join(tmp1,by = "SK_ID_BUREAU") %>% 
+  left_join(tmp2,by = "SK_ID_BUREAU") %>% 
+  left_join(tmp3,by = "SK_ID_BUREAU") %>% 
+  left_join(tmp4,by = "SK_ID_BUREAU") 
+# remove
+rm(tmp1,tmp2,tmp3,tmp4)
+```
+
+## Summarize
+
+```{r}
+fn <- funs(mean, sum, .args = list(na.rm = TRUE))
+bureau <- makedummies(bureau) %>% 
+  select(-SK_ID_BUREAU) %>% 
+  group_by(SK_ID_CURR) %>% 
+  summarise_all(fn)
+```
 
 ## output for csv
 
 - Save the csv files in the csv_imp folder
 
 ```{r eval=TRUE}
-write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_imp.csv")
-write_csv(app_test,"~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_balance_imp.csv")
+write_csv(bureau,"~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_imp.csv")
 ```
