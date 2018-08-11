@@ -7,6 +7,7 @@
 # CheckCategoryColumn: uniqueな値が100(要考察)以下の場合, カテゴリカル変数とする
 # ImputeMissingValueRF: Random Forest による欠損値補完
 # ImputeMissingValueRF: Multiple imputing による欠損値補完
+# SummarizeFunc: データをSK_ID_CURRごとにまとめる関数 (binaryとnumericalで処理を変更する)
 
 ########################################################################################
 
@@ -38,7 +39,7 @@ dfSummarySplit <- function(data){
 CheckBinaryColumn <- function(col){
   tmp <- col %>% na.omit() %>% unique()
   # check the binary
-  if(length(tmp)==2) return(TRUE)
+  if(length(tmp)<=2) return(TRUE)
   else return(FALSE)
 }
 # CheckCategoryColumn
@@ -87,5 +88,17 @@ ImputeMissingValueMI <- function(data,patterns){
   return(ans)
 }
 
-
+# SummarizeFunc
+SummarizeFunc <- function(data){
+  # for binary
+  fn1 <- funs(mean, sum, .args = list(na.rm = TRUE))
+  # for numeric
+  fn2 <- funs(mean, sum, min, max, sd,.args = list(na.rm = TRUE))
+  # summarize 
+  tmp1 <- data %>% 
+    summarize_if(CheckBinaryColumn,fn1)
+  tmp2 <- data %>% 
+    summarise_if(~!CheckBinaryColumn(.x),fn2)    
+  cbind(tmp1,tmp2) %>% return()
+}
 
