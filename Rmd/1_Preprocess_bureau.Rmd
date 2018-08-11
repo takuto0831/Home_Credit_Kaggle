@@ -159,11 +159,10 @@ rm(tmp1,tmp2,tmp3,tmp4)
 ## Summarize
 
 ```{r}
-fn <- funs(mean, sum, .args = list(na.rm = TRUE))
-bureau <- makedummies(bureau) %>% 
+bureau <- makedummies(bureau,basal_level = TRUE) %>%
   select(-SK_ID_BUREAU) %>% 
   group_by(SK_ID_CURR) %>% 
-  summarise_all(fn)
+  SummarizeFunc()
 ```
 
 ## output for csv
