@@ -87,18 +87,20 @@ library(readr) # for csv
 ## read csv
 
 - Missing value
-na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する. (application_train のfactor列は確認済み)
+
+na = c("XNA","NA","","NaN","?","Inf","-Inf"): 以下の設定で naを計上する.
 
 - convert charcter type into factor type
 
 ```{r}
 # 訓練データ, テストデータ
-app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
     mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
   mutate_if(is.character, funs(factor(.)))
-bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
+bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
   mutate_if(is.character, funs(factor(.)))
+
 
 # submit style file
 # sample_submission <- read_csv("csv/sample_submission.csv")
