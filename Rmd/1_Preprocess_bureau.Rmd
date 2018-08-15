@@ -123,7 +123,9 @@ bureau %>%
 
 ### bureau_balance
 
-```{r}
+- 自分で考えてみたが, 一旦関数を使った統一的処理
+
+```{r eval=FALSE}
 tmp1 <- bureau_balance %>% 
   filter(STATUS == "C") %>% 
   group_by(SK_ID_BUREAU) %>%
@@ -158,11 +160,15 @@ rm(tmp1,tmp2,tmp3,tmp4)
 
 ## Summarize
 
+- NAがInf or - Infになることに注意する
+
 ```{r}
-bureau <- makedummies(bureau,basal_level = TRUE) %>%
-  select(-SK_ID_BUREAU) %>% 
-  group_by(SK_ID_CURR) %>% 
-  SummarizeFunc()
+bureau <- makedummies(bureau_balance,basal_level = TRUE) %>% # make dummy
+  SummarizeFunc(group = "SK_ID_BUREAU") %>%                  # summarize
+  left_join(bureau,.,by = "SK_ID_BUREAU")
+bureau <- makedummies(bureau,basal_level = TRUE) %>% # make dummy
+  select(-SK_ID_BUREAU) %>%                          # not need
+  SummarizeFunc(group = "SK_ID_CURR")                # summarize
 ```
 
 ## output for csv
