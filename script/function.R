@@ -89,16 +89,17 @@ ImputeMissingValueMI <- function(data,patterns){
 }
 
 # SummarizeFunc
-SummarizeFunc <- function(data){
+SummarizeFunc <- function(data,group){
   # for binary
   fn1 <- funs(mean, sum, .args = list(na.rm = TRUE))
   # for numeric
-  fn2 <- funs(mean, sum, min, max, sd,.args = list(na.rm = TRUE))
+  fn2 <- funs(mean, sum, min, max, .args = list(na.rm = TRUE))
   # summarize 
-  tmp1 <- data %>% 
-    summarize_if(CheckBinaryColumn,fn1)
+  tmp1 <- data %>%
+    group_by_(group) %>% 
+    summarise_if(CheckBinaryColumn,fn1)
   tmp2 <- data %>% 
-    summarise_if(~!CheckBinaryColumn(.x),fn2)    
-  cbind(tmp1,tmp2) %>% return()
+    group_by_(group) %>% 
+    summarise_if(~!CheckBinaryColumn(.x),fn2)
+  cbind(tmp1,tmp2 %>% select(-group)) %>% return()
 }
-
