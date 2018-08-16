@@ -103,13 +103,13 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.
   mutate_if(is.character, funs(factor(.)))
 bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
   mutate_if(is.character, funs(factor(.)))
-credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/credit_card_balance_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/credit_card_balance_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
   mutate_if(is.character, funs(factor(.)))
-install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/installments_payments_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
   mutate_if(is.character, funs(factor(.)))
-pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/POS_CASH_balance_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
+pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/POS_CASH_balance_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
   mutate_if(is.character, funs(factor(.)))
-previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/previous_application_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
   mutate_if(is.character, funs(factor(.)))
 ```
 
@@ -135,7 +135,7 @@ app_test <- app_test %>%
 
 - check data
 
-```{r}
+```{r eval=FALSE}
 skimr::skim_to_wide(app_train) %>% kable()
 skimr::skim_to_wide(app_test) %>% kable()
 dfSummarySplit(app_train)
