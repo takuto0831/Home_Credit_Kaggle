@@ -83,6 +83,8 @@ opts_knit$set(width=75)
 ```{r package, message=FALSE}
 library(tidyverse)
 library(readr) # for csv
+library(summarytools) # summary easily for EDA
+library(skimr) 
 ```
 
 ## read csv
