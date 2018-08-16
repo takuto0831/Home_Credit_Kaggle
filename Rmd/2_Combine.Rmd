@@ -48,7 +48,8 @@ output:
 ## Toc
 
 - Combine all table
-    
+- Overview data
+
 # Setting{.tabset .tabset-fade .tabset-pills}
 
 ## knitr option
@@ -66,7 +67,7 @@ options(max.print="200", digits=5)
 # Global options
 library(knitr)
 opts_chunk$set(echo=TRUE,
-               cache = TRUE,
+               cache = FALSE,
 	             prompt=FALSE,
                tidy=TRUE,
                comment=NA,
@@ -128,7 +129,7 @@ app_test <- app_test %>%
   left_join(previous_app,by = "SK_ID_CURR")
 ```
 
-## EDA
+## overview
 
 - check data
 
