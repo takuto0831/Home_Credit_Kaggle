@@ -100,19 +100,50 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.
   mutate_if(is.character, funs(factor(.)))
 bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/bureau_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
   mutate_if(is.character, funs(factor(.)))
-
-
-# submit style file
-# sample_submission <- read_csv("csv/sample_submission.csv")
+credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/credit_card_balance_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+  mutate_if(is.character, funs(factor(.)))
+install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+  mutate_if(is.character, funs(factor(.)))
+pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/POS_CASH_balance_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
+  mutate_if(is.character, funs(factor(.)))
+previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application_imp.csv",na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+  mutate_if(is.character, funs(factor(.)))
 ```
 
 ## combine table
 
 ```{r}
 app_train <- app_train %>% 
-  left_join(bureau,by="SK_ID_CURR")
+  left_join(bureau,by="SK_ID_CURR") %>% 
+  left_join(credit_card,by = "SK_ID_CURR") %>% 
+  left_join(install_pay,by = "SK_ID_CURR") %>% 
+  left_join(pos_cash,by = "SK_ID_CURR") %>% 
+  left_join(previous_app,by = "SK_ID_CURR")
 
 app_test <- app_test %>% 
-  left_join(bureau,by="SK_ID_CURR")
+  left_join(bureau,by="SK_ID_CURR") %>% 
+  left_join(credit_card,by = "SK_ID_CURR") %>% 
+  left_join(install_pay,by = "SK_ID_CURR") %>% 
+  left_join(pos_cash,by = "SK_ID_CURR") %>% 
+  left_join(previous_app,by = "SK_ID_CURR")
 ```
 
+## EDA
+
+- check data
+
+```{r}
+skimr::skim_to_wide(app_train) %>% kable()
+skimr::skim_to_wide(app_test) %>% kable()
+dfSummarySplit(app_train)
+dfSummarySplit(app_test)
+```
+
+## output for csv
+
+- Save the csv files in the csv_imp folder
+
+```{r eval=TRUE}
+write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv")
+write_csv(app_test,"~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv")
+```
