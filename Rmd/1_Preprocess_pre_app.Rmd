@@ -63,6 +63,7 @@ library(fastcluster)
 
 ```{r cache=FALSE}
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 ```
 
 ## read csv
@@ -74,7 +75,7 @@ na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する.
 
 ```{r}
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
+previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 ```
 
@@ -95,10 +96,20 @@ bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application.csv",n
 
 - 新しい特徴量を作成する
 
+## Summarize
+
+- *NAがInf or - Infになることに注意する*(max,min 計算時)
+
+```{r}
+previous_app <- makedummies(previous_app,basal_level = TRUE) %>% # make dummy
+  select(-SK_ID_PREV) %>% 
+  SummarizeFunc(group = "SK_ID_CURR") 
+```
+
 ## output for csv
 
 - Save the csv files in the csv_imp folder
 
 ```{r eval=TRUE}
-write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/previous_application_imp.csv")
+write_csv(previous_app,"~/Desktop/Home_Credit_Kaggle/csv_imp/previous_application_imp.csv")
 ```

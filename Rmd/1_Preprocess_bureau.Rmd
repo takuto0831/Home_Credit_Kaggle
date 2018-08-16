@@ -160,7 +160,7 @@ rm(tmp1,tmp2,tmp3,tmp4)
 
 ## Summarize
 
-- NAがInf or - Infになることに注意する
+- *NAがInf or - Infになることに注意する*(max,min 計算時)
 
 ```{r}
 bureau <- makedummies(bureau_balance,basal_level = TRUE) %>% # make dummy

@@ -74,7 +74,7 @@ na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する.
 
 ```{r}
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
+install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.)))
 ```
 
@@ -95,10 +95,20 @@ bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments.csv",
 
 - 新しい特徴量を作成する
 
+## Summarize
+
+- *NAがInf or - Infになることに注意する*(max,min 計算時)
+
+```{r}
+install_pay <- makedummies(install_pay,basal_level = TRUE) %>% # make dummy
+  select(-SK_ID_PREV) %>% 
+  SummarizeFunc(group = "SK_ID_CURR") 
+```
+
 ## output for csv
 
 - Save the csv files in the csv_imp folder
 
 ```{r eval=TRUE}
-write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/installments_payments_imp.csv")
+write_csv(install_pay,"~/Desktop/Home_Credit_Kaggle/csv_imp/installments_payments_imp.csv")
 ```
