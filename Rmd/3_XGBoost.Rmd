@@ -39,7 +39,7 @@ options(max.print="100", digits=5)
 # Global options
 library(knitr)
 opts_chunk$set(echo=TRUE,
-               cache = TRUE,
+               cache = FALSE,
 	             prompt=FALSE,
                tidy=TRUE,
                comment=NA,
@@ -64,14 +64,11 @@ library(DT)
 ## read csv
 
 ```{r}
-# xgboost character 扱えない??
-# mutate_if(is.character, funs(factor(.) %>% as.integer())) 
-
 # 訓練データ, テストデータ
-app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
     mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+    mutate_if(is.character, funs(factor(.)))
 ```
 
 # XGBoost
@@ -85,8 +82,7 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.
 
 ```{r normal data}
 # train data
-train_data <- app_train %>% 
-  select(-SK_ID_CURR)
+train_data <- app_train %>% select(-SK_ID_CURR)
 # test data
 test_data <- app_test
 ```
@@ -184,7 +180,7 @@ XgboostTune <- function(params, train_data){
 
 - test 
 
-```{r eval=FALSE}
+```{r}
 # xgboost fitting with arbitrary parameters
 xgb_params = list(
   objective = "binary:logistic", # binary classification
@@ -202,14 +198,14 @@ xgb_params = list(
   lambda = 0.05
 )
 # set file name
-file_name <- "test2"
+file_name <- "all_data"
 # execute xgboost
 XgboostPred(xgb_params,file_name,train_data,test_data)
 ```
 
 ## xgboost parameter tuning
 
-```{r}
+```{r eval=FALSE}
 # xgboost fitting with arbitrary parameters
 xgbGrid <- expand.grid(
   objective = "binary:logistic", # binary classification
@@ -232,43 +228,42 @@ tmp <- XgboostTune(params = xgbGrid[1,],train_data[1:1000,])
 
 ## caret package
 
-```{r,eval=FALSE}
-# # hyper-parameters to be extracted with 10-fold cross validation repeated 2 times
-# trControl <- trainControl(method="cv", 
-#                           number=5, 
-#                           allowParallel = TRUE,
-#                           verboseIter = TRUE)
-# 
-# xgbGrid <- expand.grid(
-#   nrounds=c(350),
-#   max_depth = c(4, 6),
-#   eta = c(0.05, 0.1),
-#   gamma = c(0.01),
-#   colsample_bytree = c(0.75),
-#   subsample = c(0.50),
-#   min_child_weight = c(0))
-# 
-# # predict + parallel
-# cl <- makeCluster(detectCores()) 
-# registerDoParallel(cl)
-# 
-# ## factor(TARGET) -> classifiacation
-# ## TARGET -> regression
-# model_xgb <- train(TARGET ~ ., 
-#                    data = data.matrix(train_data[1:100,]), 
-#                    na.action = na.pass, # 欠損値に対する処理
-#                    trControl=trControl, 
-#                    method='xgbTree', 
-#                    objective = "binary:logistic",
-#                    tuneGrid = xgbGrid);
-# 
-# 
-# stopCluster(cl)
-# # result
-# print(model_xgb)
+```{r eval=FALSE}
+# hyper-parameters to be extracted with 10-fold cross validation repeated 2 times
+trControl <- trainControl(method="cv",
+                          number=5,
+                          allowParallel = TRUE,
+                          verboseIter = TRUE)
 
-# # predict
-# # 予測がマイナスの値を取ることがある.
+xgbGrid <- expand.grid(
+  nrounds=c(350),
+  max_depth = c(4, 6),
+  eta = c(0.05, 0.1),
+  gamma = c(0.01),
+  colsample_bytree = c(0.75),
+  subsample = c(0.50),
+  min_child_weight = c(0))
+
+# predict + parallel
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+
+## factor(TARGET) -> classifiacation
+## TARGET -> regression
+model_xgb <- train(TARGET ~ .,
+                   data = data.matrix(train_data[1:100,]),
+                   na.action = na.pass, # 欠損値に対する処理
+                   trControl=trControl,
+                   method='xgbTree',
+                   objective = "binary:logistic",
+                   tuneGrid = xgbGrid);
+
+stopCluster(cl)
+# result
+print(model_xgb)
+
+# predict
+# 予測がマイナスの値を取ることがある.
 # # 0=1のルールを考慮できていない??
 # pred_caret <- predict(model_xgb, data.matrix(test_data %>% select(-SK_ID_CURR)))
 ```
