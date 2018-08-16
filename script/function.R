@@ -97,9 +97,12 @@ SummarizeFunc <- function(data,group){
   # summarize 
   tmp1 <- data %>%
     group_by_(group) %>% 
-    summarise_if(CheckBinaryColumn,fn1)
+    summarise_if(CheckBinaryColumn,fn1) %>% 
+    round(digits = 4) 
   tmp2 <- data %>% 
     group_by_(group) %>% 
-    summarise_if(~!CheckBinaryColumn(.x),fn2)
+    summarise_if(~!CheckBinaryColumn(.x),fn2) %>% 
+    round(digits = 4)
+  # combine
   cbind(tmp1,tmp2 %>% select(-group)) %>% return()
 }
