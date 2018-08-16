@@ -63,6 +63,7 @@ library(fastcluster)
 
 ```{r cache=FALSE}
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 ```
 
 ## read csv
