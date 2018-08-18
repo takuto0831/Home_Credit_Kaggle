@@ -109,7 +109,7 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
                               label = train_data$TARGET),
            params = xgb_params,
            missing = NA,
-           nfold = 10, 
+           nfold = 5, 
            nrounds = 2000,
            verbose = TRUE,
            prediction = TRUE,                                           # return the prediction using the final model 
@@ -140,6 +140,7 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
   path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),sep = "")
   # export
   write_csv(submit,path = path_name)
+  return(xgb_model)
 }
 
 XgboostTune <- function(params, train_data){
