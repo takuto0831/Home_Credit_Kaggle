@@ -15,6 +15,8 @@
 
 # Home_Credit_Kaggle
 
+- application_train_imp.csv (8/19)
+
 ## Rmd.file
 
 - 0_EDA.Rmd: Checking data simply and searching problem
