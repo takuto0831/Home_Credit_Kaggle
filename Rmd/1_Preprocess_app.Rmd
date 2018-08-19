@@ -57,6 +57,7 @@ library(doParallel)
 library(qgraph)
 library(psych)
 library(fastcluster)
+library(Rtsne)
 ```
 
 ## Load funciton
@@ -598,15 +599,15 @@ app_train %>%
 app_train <- app_train %>% 
   mutate(tmp1 = EXT_SOURCE_1,tmp2 = EXT_SOURCE_2,tmp3 = EXT_SOURCE_3) %>% 
   mutate_at(vars(matches("tmp",.)), funs(ifelse(is.na(.),0,.))) %>% 
-  mutate(EXT_SOURCE_SUM_add = round(tmp1 + tmp2 + tmp3, digits = 4)) %>% 
-  mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3, digits = 4)) %>% 
+  mutate(EXT_SOURCE_SUM_imp = round(tmp1 + tmp2 + tmp3, digits = 4)) %>% 
+  mutate(EXT_SOURCE_MULTI_imp = round(tmp1 * tmp2 * tmp3, digits = 4)) %>% 
   select(-c(tmp1,tmp2,tmp3))
 
 app_test <- app_test %>% 
   mutate(tmp1 = EXT_SOURCE_1,tmp2 = EXT_SOURCE_2,tmp3 = EXT_SOURCE_3) %>% 
   mutate_at(vars(matches("tmp",.)), funs(ifelse(is.na(.),0,.))) %>% 
-  mutate(EXT_SOURCE_SUM_add = round(tmp1 + tmp2 + tmp3,digits = 4)) %>% 
-  mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3,digits = 4)) %>% 
+  mutate(EXT_SOURCE_SUM_imp = round(tmp1 + tmp2 + tmp3,digits = 4)) %>% 
+  mutate(EXT_SOURCE_MULTI_imp = round(tmp1 * tmp2 * tmp3,digits = 4)) %>% 
   select(-c(tmp1,tmp2,tmp3))
 ```
 
