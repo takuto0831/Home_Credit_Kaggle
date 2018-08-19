@@ -611,6 +611,15 @@ app_test <- app_test %>%
   select(-c(tmp1,tmp2,tmp3))
 ```
 
+### AVG_???
+
+```{r}
+patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG")
+tmp1 <- app_train %>% 
+  select_if(grepl("_AVG",names(.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+```
+
 ## output for csv
 
 - Save the csv files in the csv_imp folder
