@@ -88,6 +88,16 @@ ImputeMissingValueMI <- function(data,patterns){
   return(ans)
 }
 
+ImputeMissingValueTSNE <- function(data,patterns){
+  # impute missing value
+  ans <- data %>% 
+    Rtsne(check_duplicates = FALSE, verbose=TRUE)
+  # rename data
+  colnames(ans) <- paste(patterns,"_imp",sep = "")
+  return(ans)
+}
+
+  
 # SummarizeFunc
 SummarizeFunc <- function(data,group){
   # for binary
