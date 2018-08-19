@@ -89,10 +89,10 @@ ImputeMissingValueMI <- function(data,patterns){
 }
 
 ImputeMissingValueTSNE <- function(data,patterns){
+  set.seed(831) # 再現性の確保
   # impute missing value
   ans <- data %>% 
-    Rtsne(check_duplicates = FALSE, verbose=TRUE) %>% 
-    .$Y
+    Rtsne(check_duplicates = FALSE, verbose=TRUE) %>% .$Y
   # rename data
   colnames(ans) <- paste(patterns,"_imp",sep = "")
   return(ans)
