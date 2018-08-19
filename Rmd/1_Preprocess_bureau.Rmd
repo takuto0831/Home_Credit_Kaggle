@@ -111,10 +111,73 @@ bureau %>%
   filter(is.na(DAYS_CREDIT_ENDDATE)) %>% 
   select(DAYS_CREDIT) %>% 
   hist()
+
+bureau %>% 
+  select(CREDIT_DAY_OVERDUE) %>% 
+  table()
 bureau %>% 
   filter(is.na(DAYS_CREDIT_ENDDATE)) %>% 
+  select(CREDIT_DAY_OVERDUE) %>% 
+  table()
+```
+
+### DAYS_ENDDATE_FACT 
+
+- 欠損値の中で内容が違う気がする
+
+```{r}
+bureau %>% 
+  filter(!is.na(DAYS_ENDDATE_FACT)) %>% 
   select(CREDIT_ACTIVE) %>% 
   table()
+
+bureau %>% 
+  filter(is.na(DAYS_ENDDATE_FACT)) %>% 
+  select(CREDIT_ACTIVE) %>% 
+  table()
+```
+
+### DAYS_???
+
+```{r}
+bureau %>% 
+  select_if(grepl("DAYS_",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+bureau %>% 
+  select_if(grepl("DAYS_",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+
+bureau %>% 
+  select_if(grepl("DAYS_",names(.))) %>% 
+  na.omit() %>% 
+  ggpairs(cardinality_threshold=20)
+```
+
+### AMT_???
+
+- AMT_CREDIT_MAX_OVERDUE
+- AMT_CREDIT_SUM
+- AMT_CREDIT_SUM_DEBT 
+- AMT_CREDIT_SUM_LIMIT 
+- AMT_ANNUITY
+
+```{r}
+bureau %>% 
+  select_if(grepl("AMT_",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+bureau %>% 
+  select_if(grepl("AMT_",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
 ```
 
 ## add new column{.tabset .tabset-fade .tabset-pills}
