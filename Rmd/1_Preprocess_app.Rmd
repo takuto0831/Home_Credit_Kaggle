@@ -98,7 +98,7 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na 
 
 - 少ないので放置 (欠損値:4つ)
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select(CODE_GENDER) %>% 
   table(exclude = NULL)
@@ -126,7 +126,7 @@ app_test <- app_test %>%
 - 所属=NA and 職業=NA -> 無職,無所属
 - 所属=NA, 職業=NA -> other
 
-```{r}
+```{r eval=FALSE}
 app_train %>% select(OCCUPATION_TYPE) %>% table()
 app_test %>% select(OCCUPATION_TYPE) %>% table()
 ```
@@ -149,7 +149,7 @@ app_test <- app_test %>%
 - 所属=NA and 職業=NA -> 無職,無所属
 - 所属=NA, 職業=NA -> other
 
-```{r}
+```{r eval=FALSE}
 app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) 
 #app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) 
 ```
@@ -172,7 +172,7 @@ app_test <- app_test %>%
 - 車の所持データとほぼ一致(5件: 車保持かつ年数不明があった)
 - 放置
 
-```{r}
+```{r eval=FALSE}
 app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL) 
 ```
 
@@ -181,7 +181,7 @@ app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL)
 - 家族の人数
 - 欠損値は一人と考える
 
-```{r}
+```{r eval=FALSE}
 # 子どもの人数 / 家族の人数
 app_train %>% select(CNT_CHILDREN,CNT_FAM_MEMBERS) %>% table(exclude = NULL) 
 ```
@@ -204,7 +204,7 @@ app_test <- app_test %>%
 - 収入とクレジットを元に, 多重代入法による欠損値補完(error)
 
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select(EXT_SOURCE_1,EXT_SOURCE_2,EXT_SOURCE_3,DAYS_BIRTH,DAYS_ID_PUBLISH,OCCUPATION_TYPE) %>% 
   na.omit() %>% 
@@ -255,7 +255,7 @@ app_test <- cbind(app_test,tmp2)
 - 14項目
 - 保留
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select_if(grepl("_AVG",names(.))) %>% 
   na.omit() %>%
@@ -309,7 +309,7 @@ app_test <- cbind(app_test,tmp2)
 - 14項目
 - 保留
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select_if(grepl("_MEDI",names(.))) %>% 
   na.omit() %>%
@@ -373,7 +373,7 @@ app_test <- cbind(app_test,tmp2)
 
 #### factor value 
 
-```{r}
+```{r eval=FALSE}
 app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
 app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
 app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) 
@@ -409,7 +409,7 @@ app_test <- app_test %>%
 
 #### numeric value
 
-```{r}
+```{r eval=FALSE}
 tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
 app_train %>% 
   select_if(grepl("_MODE",names(.))) %>% 
@@ -455,7 +455,7 @@ app_test <- cbind(app_test,tmp2)
 
 - 観測されていない => 0
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select_if(grepl("_CIRCLE",names(.))) %>% 
   na.omit() %>%
@@ -487,7 +487,7 @@ app_test <- app_test %>%
 - 欠損値一人
 - 保留
 
-```{r}
+```{r eval=FALSE}
 app_train %>% select(DAYS_LAST_PHONE_CHANGE) %>% table(exclude = NULL) 
 ```
 
@@ -503,7 +503,7 @@ app_train %>% select(DAYS_LAST_PHONE_CHANGE) %>% table(exclude = NULL)
 
 - 3つのローンの相関関係強い, 欠損値補完に使える！！
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
   na.omit() %>% 
@@ -539,7 +539,7 @@ app_test <- cbind(app_test,tmp2)
 - 何かの紹介件数 NA-> 0補完
 - 関係性低い
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
          AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
@@ -587,7 +587,7 @@ app_test <- app_test %>%
 - 全てNAのものは172個
 - 合計値と乗算値
 
-```{r}
+```{r eval=FALSE}
 app_train %>% 
   filter(EXT_SOURCE_1 %>% is.na()) %>% 
   filter(EXT_SOURCE_2 %>% is.na()) %>% 
@@ -611,13 +611,75 @@ app_test <- app_test %>%
   select(-c(tmp1,tmp2,tmp3))
 ```
 
-### AVG_???
+### AVG
+
+- 欠損値に0を代入してRtsneを実行
 
 ```{r}
-patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG")
+patterns <- c("AVG1", "AVG2")
+# make new column
 tmp1 <- app_train %>% 
   select_if(grepl("_AVG",names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
+tmp2 <- app_test %>% 
+  select_if(grepl("_AVG",names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+# combine data
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
+### MODE
+
+- 欠損値に0を代入してRtsneを実行
+
+```{r}
+# exclude
+tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
+# list
+patterns <- c( "MODE1", "MODE2")
+
+tmp1 <- app_train %>% 
+  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+
+tmp2 <- app_test %>% 
+  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
+### MEDI
+
+- 欠損値に0を代入してRtsneを実行
+
+```{r}
+# list
+patterns <- c("MEDI1", "MEDI2")
+
+# data
+tmp1 <- app_train %>% 
+  select_if(grepl("_MEDI",names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+
+tmp2 <- app_test %>%
+  select_if(grepl("_MEDI",names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+
+# データ結合
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
 ```
 
 ## output for csv
