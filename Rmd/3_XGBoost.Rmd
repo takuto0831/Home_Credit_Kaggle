@@ -33,7 +33,9 @@ rm(list = ls())
 
 ```{r set up, message=FALSE}
 # set directory
-setwd("~/Desktop/Home_Credit_Kaggle/") 
+setwd("~/Desktop/Home_Credit_Kaggle/") # for mac
+#setwd("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/") # for windows
+
 # max.print 
 options(max.print="100", digits=5)
 # Global options
@@ -65,10 +67,17 @@ library(DT)
 
 ```{r}
 # 訓練データ, テストデータ
+# for mac
 app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
     mutate_if(is.character, funs(factor(.)))
 app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
     mutate_if(is.character, funs(factor(.)))
+
+# for windows
+# app_train <- read_csv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+#     mutate_if(is.character, funs(factor(.)))
+# app_test <- read_csv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+#     mutate_if(is.character, funs(factor(.)))
 ```
 
 # XGBoost
@@ -85,6 +94,12 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", n
 train_data <- app_train %>% select(-SK_ID_CURR)
 # test data
 test_data <- app_test
+```
+
+```{r}
+## for test
+train_data <- train_data[1:100000,1:20]
+test_data <- test_data[1:10000,1:20]
 ```
 
 ## xgboost function
@@ -141,6 +156,44 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
   # export
   write_csv(submit,path = path_name)
   return(xgb_model)
+}
+
+# 番号要注意
+XgboostSelect <- function(xgb_params,train_data,test_data){
+  # not need column
+  alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para")
+
+  set.seed(831)
+  # xgboost cross validation to choice best parameter
+  xgb_cv <- 
+    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(-one_of(alr$Feature)) %>% data.matrix(),
+                              label = train_data$TARGET),
+           params = xgb_params,
+           missing = NA,
+           nfold = 5, 
+           nrounds = 2000,
+           verbose = TRUE,
+           prediction = TRUE,                                           # return the prediction using the final model 
+           showsd = TRUE,                                               # standard deviation of loss across folds
+           stratified = TRUE, 
+           print_every_n = 10,
+           early_stopping_rounds = 200 )
+  # xgboost modeling  
+  xgb_model <- 
+    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+                               label = train_data$TARGET),
+            params = xgb_params,
+            nrounds = xgb_cv$best_iteration, # max number of trees to build
+            verbose = TRUE,                                         
+            print_every_n = 10,
+            early_stopping_rounds = 200 )
+  tmp <- xgb.importance(model = xgb_model) %>% 
+    select(Feature)
+  # 優れた50個を抽出し,元データと結合する
+  tmp <- rbind(alr,tmp[1:50,])
+  # save file
+  write_tsv(tmp,"~/Desktop/Home_Credit_Kaggle/data/best_para") # for mac
+  write_tsv(tmp,"C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para") # for windows
 }
 
 XgboostTune <- function(params, train_data){
