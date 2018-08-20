@@ -93,7 +93,6 @@ bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau_balance.csv"
 - Check for imputation values
 - Describe the details on the explanation sheet
 - Add `_imp` to the supplemented column
-- Add `_add` to the added column
 
 ## impute missing values{.tabset .tabset-fade .tabset-pills}
 
@@ -103,7 +102,7 @@ bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau_balance.csv"
 
 ### DAYS_CREDIT_ENDDATE 
 
-```{r}
+```{r eval=FALSE}
 bureau %>%
   select(DAYS_CREDIT) %>% 
   hist()
@@ -125,7 +124,7 @@ bureau %>%
 
 - 欠損値の中で内容が違う気がする
 
-```{r}
+```{r eval=FALSE}
 bureau %>% 
   filter(!is.na(DAYS_ENDDATE_FACT)) %>% 
   select(CREDIT_ACTIVE) %>% 
@@ -139,7 +138,13 @@ bureau %>%
 
 ### DAYS_???
 
-```{r}
+- DAYS_CREDIT
+- CREDIT_DAY_OVERDUE
+- DAYS_CREDIT_ENDDATE
+- DAYS_ENDDATE_FACT
+- DAYS_CREDIT_UPDATE
+
+```{r eval=FALSE}
 bureau %>% 
   select_if(grepl("DAYS_",names(.))) %>% 
   na.omit() %>%
@@ -159,23 +164,25 @@ bureau %>%
 ```
 
 ```{r}
-library(Rtsne)
-set.seed(1) # 再現性の確保
-test <- bureau %>% 
-  select_if(grepl("DAYS",names(.))) %>% 
-  Rtsne(check_duplicates = FALSE, verbose=TRUE)
+# data
+data1 <- bureau %>% select_if(grepl("DAY",names(.)))
+patterns <- c("DAYS_CREDIT","DAYS_CREDIT_ENDDATE","DAYS_ENDDATE_FACT")
+# 欠損値補完 
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+# データ結合
+bureau <- cbind(bureau,tmp1)
 ```
-
 
 ### AMT_???
 
 - AMT_CREDIT_MAX_OVERDUE
+- AMT_CREDIT_SUM_OVERDUE
 - AMT_CREDIT_SUM
 - AMT_CREDIT_SUM_DEBT 
 - AMT_CREDIT_SUM_LIMIT 
 - AMT_ANNUITY
 
-```{r}
+```{r eval=FALSE}
 bureau %>% 
   select_if(grepl("AMT_",names(.))) %>% 
   na.omit() %>%
@@ -187,6 +194,16 @@ bureau %>%
   na.omit() %>%
   cor() %>% 
   cor.plot(numbers = TRUE)
+```
+
+```{r}
+# data
+data1 <- bureau %>% select_if(grepl("AMT",names(.)))
+patterns <- c("AMT_CREDIT_MAX_OVERDUE","AMT_CREDIT_SUM","AMT_CREDIT_SUM_DEBT","AMT_CREDIT_SUM_LIMIT","AMT_ANNUITY")
+# 欠損値補完 
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+# データ結合
+bureau <- cbind(bureau,tmp1)
 ```
 
 ## add new column{.tabset .tabset-fade .tabset-pills}
@@ -237,6 +254,7 @@ rm(tmp1,tmp2,tmp3,tmp4)
 ```{r}
 bureau <- makedummies(bureau_balance,basal_level = TRUE) %>% # make dummy
   SummarizeFunc(group = "SK_ID_BUREAU") %>%                  # summarize
+  select(-c(mean,sum,sd)) %>%                                # not need remove
   left_join(bureau,.,by = "SK_ID_BUREAU")
 bureau <- makedummies(bureau,basal_level = TRUE) %>% # make dummy
   select(-SK_ID_BUREAU) %>%                          # not need
