@@ -100,7 +100,6 @@ ImputeMissingValueTSNE <- function(data,patterns){
   return(ans)
 }
 
-  
 # SummarizeFunc
 SummarizeFunc <- function(data,group){
   # for binary
