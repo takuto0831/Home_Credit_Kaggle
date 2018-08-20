@@ -96,12 +96,6 @@ train_data <- app_train %>% select(-SK_ID_CURR)
 test_data <- app_test
 ```
 
-```{r eval=FALSE}
-## for test
-train_data <- train_data[1:100000,1:20]
-test_data <- test_data[1:10000,1:20]
-```
-
 ## xgboost function
 
 - XgboostPred: 
@@ -119,12 +113,15 @@ test_data <- test_data[1:10000,1:20]
 XgboostPred <- function(xgb_params,file_name,train_data,test_data){
   # using column 
   alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
+  # set data
+  train <- train_data %>% select(-TARGET) %>% select(alr$Feature) %>%  data.matrix()
+  test <- test_data %>% select(-SK_ID_CURR) %>% select(alr$Feature) %>% data.matrix()
+  target <- train_data$TARGET
   # set seed
   set.seed(831)
   # xgboost cross validation to choice best parameter
   xgb_cv <- 
-    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(alr$Feature) %>%  data.matrix(),
-                              label = train_data$TARGET),
+    xgb.cv(data = xgb.DMatrix(data = train, label = target),
            params = xgb_params,
            missing = NA,
            nfold = 5, 
@@ -137,8 +134,7 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
            early_stopping_rounds = 200 )
   # xgboost modeling  
   xgb_model <- 
-    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(alr$Feature) %>% data.matrix(),
-                               label = train_data$TARGET),
+    xgboost(data = xgb.DMatrix(data = train, label = target),
             params = xgb_params,
             nrounds = xgb_cv$best_iteration, # max number of trees to build
             verbose = TRUE,                                         
@@ -146,16 +142,15 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
             early_stopping_rounds = 200 )
   # Visualize important value
   xgb.importance(model = xgb_model) %>% 
-    xgb.plot.importance(top_n = 30) %>% 
-    print()
+    xgb.plot.importance(top_n = 30) %>% print()
   # predict
-  pred_test <- predict(xgb_model,test_data %>% select(-SK_ID_CURR) %>% select(alr$Feature) %>% data.matrix())
+  pred_test <- predict(xgb_model,test)
 
   # make submit style
   submit <- data.frame(test_data,TARGET = pred_test) %>% 
-    select(SK_ID_CURR,TARGET)
-  # change format
-  submit$SK_ID_CURR <- submit$SK_ID_CURR %>% as.integer()
+    select(SK_ID_CURR,TARGET) %>% 
+    mutate(SK_ID_CURR = SK_ID_CURR %>% as.integer())
+
   # file name + submit date
   path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "")
   # export
@@ -163,17 +158,20 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
   return(xgb_model)
 }
 
-# 番号要注意
 XgboostSelect <- function(xgb_params,train_data,test_data){
   # not need column
   alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
   alr <- read_tsv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for windows
+  
+  # set data
+  train <- train_data %>% select(-TARGET) %>% select(-one_of(alr$Feature)) %>%  data.matrix()
+  target <- train_data$TARGET 
+  
   # set seed
   set.seed(831)
   # xgboost cross validation to choice best parameter
   xgb_cv <- 
-    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(-one_of(alr$Feature)) %>% data.matrix(),
-                              label = train_data$TARGET),
+    xgb.cv(data = xgb.DMatrix(data = train,label = target),
            params = xgb_params,
            missing = NA,
            nfold = 5, 
@@ -186,8 +184,7 @@ XgboostSelect <- function(xgb_params,train_data,test_data){
            early_stopping_rounds = 200 )
   # xgboost modeling  
   xgb_model <- 
-    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(-one_of(alr$Feature)) %>% data.matrix(),
-                               label = train_data$TARGET),
+    xgboost(data = xgb.DMatrix(data = train, label = target),
             params = xgb_params,
             nrounds = xgb_cv$best_iteration, # max number of trees to build
             verbose = TRUE,                                         
@@ -202,6 +199,7 @@ XgboostSelect <- function(xgb_params,train_data,test_data){
   write_tsv(tmp,"C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for windows
 }
 
+##### 要変更 #####
 XgboostTune <- function(params, train_data){
   # function for as.list 
   one_entry <- function(x) {
