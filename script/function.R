@@ -77,7 +77,7 @@ ImputeMissingValueMI <- function(data,patterns){
   imp <- data %>% 
     as.data.frame() %>% 
     missing_data.frame() %>% 
-    mi(n.iter = 10, n.chains = 4, max.minutes = 1000, parallel = TRUE)
+    mi(n.iter = 50, n.chains = 4, max.minutes = 2000, parallel = TRUE)
   stopCluster(cl)
   # extract value
   tmp <- complete(imp,1:4)
