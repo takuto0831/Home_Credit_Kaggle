@@ -96,7 +96,7 @@ train_data <- app_train %>% select(-SK_ID_CURR)
 test_data <- app_test
 ```
 
-```{r}
+```{r eval=FALSE}
 ## for test
 train_data <- train_data[1:100000,1:20]
 test_data <- test_data[1:10000,1:20]
@@ -117,10 +117,13 @@ test_data <- test_data[1:10000,1:20]
 
 ```{r}
 XgboostPred <- function(xgb_params,file_name,train_data,test_data){
+  # using column 
+  alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
+  # set seed
   set.seed(831)
   # xgboost cross validation to choice best parameter
   xgb_cv <- 
-    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(alr$Feature) %>%  data.matrix(),
                               label = train_data$TARGET),
            params = xgb_params,
            missing = NA,
@@ -134,7 +137,7 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
            early_stopping_rounds = 200 )
   # xgboost modeling  
   xgb_model <- 
-    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(alr$Feature) %>% data.matrix(),
                                label = train_data$TARGET),
             params = xgb_params,
             nrounds = xgb_cv$best_iteration, # max number of trees to build
@@ -146,7 +149,7 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
     xgb.plot.importance(top_n = 30) %>% 
     print()
   # predict
-  pred_test <- predict(xgb_model,data.matrix(test_data %>% select(-SK_ID_CURR)))
+  pred_test <- predict(xgb_model,test_data %>% select(-SK_ID_CURR) %>% select(alr$Feature) %>% data.matrix())
 
   # make submit style
   submit <- data.frame(test_data,TARGET = pred_test) %>% 
@@ -181,7 +184,7 @@ XgboostSelect <- function(xgb_params,train_data,test_data){
            early_stopping_rounds = 200 )
   # xgboost modeling  
   xgb_model <- 
-    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
+    xgboost(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% select(-one_of(alr$Feature)) %>% data.matrix(),
                                label = train_data$TARGET),
             params = xgb_params,
             nrounds = xgb_cv$best_iteration, # max number of trees to build
@@ -253,7 +256,7 @@ xgb_params = list(
   lambda = 0.05
 )
 # set file name
-file_name <- "all_data"
+file_name <- "best_data_top_50"
 # execute xgboost
 XgboostPred(xgb_params,file_name,train_data,test_data)
 ```
