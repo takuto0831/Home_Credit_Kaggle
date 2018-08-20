@@ -166,7 +166,7 @@ bureau %>%
 ```{r}
 # data
 data1 <- bureau %>% select_if(grepl("DAY",names(.)))
-patterns <- c("DAYS_CREDIT","DAYS_CREDIT_ENDDATE","DAYS_ENDDATE_FACT")
+patterns <- c("DAYS_CREDIT_ENDDATE","DAYS_ENDDATE_FACT")
 # 欠損値補完 
 tmp1 <- ImputeMissingValueMI(data1,patterns)
 # データ結合
