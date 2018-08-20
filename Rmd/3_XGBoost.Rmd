@@ -154,6 +154,8 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
   # make submit style
   submit <- data.frame(test_data,TARGET = pred_test) %>% 
     select(SK_ID_CURR,TARGET)
+  # change format
+  submit$SK_ID_CURR <- submit$SK_ID_CURR %>% as.integer()
   # file name + submit date
   path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "")
   # export
