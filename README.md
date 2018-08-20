@@ -15,8 +15,6 @@
 
 # Home_Credit_Kaggle
 
-- application_train_imp.csv (8/19)
-
 ## Rmd.file
 
 - 0_EDA.Rmd: Checking data simply and searching problem
@@ -52,10 +50,16 @@
 
 ## csv_imp.file
 
-- 欠損処理等を実行したもの(1_Preprocess)
-- 配布データを結合したもの(2_Combine)
+*日付付きで Boxに保存してある*
 
+- 欠損処理等を実行したデータ
+- 全てのテーブルを結合したデータ(all_data_train.csv)
+
+## data.file
+
+- xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
 # Layered Directory
+
  
 ```
 ├── Home_Credit_Kaggle.Rproj
@@ -84,11 +88,9 @@
 │   ├── installments_payments.csv
 │   ├── previous_application.csv
 │   └── sample_submission.csv
-├── csv_imp
-├── script
-│   ├── 
-│   └── function.R
-└── submit
-
+├── data
+│   └── best_para.tsv
+└── script
+   ├── function.R
+   └── makedummies.R 
 ```
-
