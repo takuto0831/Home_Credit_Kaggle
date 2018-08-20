@@ -106,7 +106,7 @@ SummarizeFunc <- function(data,group){
   # for binary
   fn1 <- funs(mean, sum, .args = list(na.rm = TRUE))
   # for numeric
-  fn2 <- funs(mean, sum, min, max, .args = list(na.rm = TRUE))
+  fn2 <- funs(mean, sum, min, max, sd, .args = list(na.rm = TRUE))
   # summarize 
   tmp1 <- data %>%
     group_by_(group) %>% 
