@@ -612,7 +612,7 @@ app_test <- app_test %>%
 ```
 
 ```{r}
-patterns <- c("EXT_SOURCE_1", "EXT_SOURCE_2","EXT_SOURCE_3")
+patterns <- c("EXT_TSNE_1", "EXT_TSNE_2")
 # make new column
 tmp1 <- app_train %>% 
   select_if(grepl("EXT_SOURCE",names(.))) %>% 
@@ -632,7 +632,7 @@ app_test <- cbind(app_test,tmp2)
 - 欠損値に0を代入してRtsneを実行
 
 ```{r}
-patterns <- c("AVG1", "AVG2")
+patterns <- c("AVG_TSNE_1", "AVG_TSNE_2")
 # make new column
 tmp1 <- app_train %>% 
   select_if(grepl("_AVG",names(.))) %>% 
@@ -655,7 +655,7 @@ app_test <- cbind(app_test,tmp2)
 # exclude
 tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
 # list
-patterns <- c( "MODE1", "MODE2")
+patterns <- c( "MODE_TSNE_1", "MODE_TSNE_2")
 
 tmp1 <- app_train %>% 
   select_if(grepl("_MODE",names(.))) %>% 
@@ -680,7 +680,7 @@ app_test <- cbind(app_test,tmp2)
 
 ```{r}
 # list
-patterns <- c("MEDI1", "MEDI2")
+patterns <- c("MEDI_TSNE_1", "MEDI_TSNE_2")
 
 # data
 tmp1 <- app_train %>% 
