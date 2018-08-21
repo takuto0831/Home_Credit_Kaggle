@@ -68,16 +68,18 @@ library(DT)
 ```{r}
 # 訓練データ, テストデータ
 # for mac
-app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+all_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
     mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
+all_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
     mutate_if(is.character, funs(factor(.)))
+```
 
+```{r}
 # for windows
-# app_train <- read_csv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
-#     mutate_if(is.character, funs(factor(.)))
-# app_test <- read_csv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>% 
-#     mutate_if(is.character, funs(factor(.)))
+all_train <- read_csv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/csv_imp/all_data_train.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
+    mutate_if(is.character, funs(factor(.)))
+all_test <- read_csv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", na = c("XNA","NA","","NaN","?","Inf","-Inf")) %>%
+    mutate_if(is.character, funs(factor(.)))
 ```
 
 # XGBoost
@@ -88,31 +90,133 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv_imp/all_data_test.csv", n
 ## Preprocessing 
 
 - `application_train`のデータを利用して, xgboostを実装
+- SK_ID_CURR のカラムを取り除く
 
 ```{r normal data}
 # train data
-train_data <- app_train %>% select(-SK_ID_CURR)
+train_data <- all_train %>% select(-SK_ID_CURR)
 # test data
-test_data <- app_test
+test_data <- all_test
 ```
 
-## xgboost function
+## xgboost parameters
 
-- XgboostPred: 
-    - parameter setting
-    - 10-fold cross-validation
-    - execute xgboost model
-    - make submit file
-- XgboostTune:
-    - parameter setting
-    - 10-fold cross-validation
-    - output param and best iter
-    - combine by rbind
+### best parameter 
+
+- by kuroki
+
+```{r}
+# xgboost fitting with arbitrary parameters
+xgb_params <- list(objective = "binary:logistic",
+                   booster = "gbtree",
+                   eval_metric = "auc",
+                   nthread = 8,
+                   eta = 0.05,
+                   max_depth = 5,
+                   min_child_weight = 30,
+                   gamma = 0,
+                   subsample = 0.85,
+                   colsample_bytree = 0.65,
+                   alpha = 0,
+                   lambda = 0,
+                   nrounds = 2000)
+```
+
+### other parameter
+
+- by kaggle
+
+```{r}
+# xgboost fitting with arbitrary parameters
+xgb_params = list(
+  objective = "binary:logistic", # binary classification
+  booster = "gbtree",
+  eval_metric = "auc",
+  nthread = 8,
+  eta = 0.025,
+  max_depth = 6,
+  min_child_weight = 20,
+  gamma = 0,
+  subsample = 0.85,
+  colsample_bytree = 0.7,
+  colsample_bylevel = 0.632,
+  alpha = 0,
+  lambda = 0.05
+)
+```
+
+## set file name 
+
+```{r}
+# set file name
+file_name <- "best_data_top_50"
+```
+
+## xgboost excecute
+
+- XgboostPred: 全てのパラメータを用いて, xgboostを実施する関数
+
+- XgboostFeatureSelect: 選択した特徴量のみを用いて, xgboostを実施する関数
+
+- XgboostFeatureSearch: すでに選択された特徴量をのぞいて, 優れた特徴量を探索する関数
 
 ```{r}
 XgboostPred <- function(xgb_params,file_name,train_data,test_data){
+  # set data
+  train <- train_data %>% select(-TARGET) %>%  data.matrix()
+  test <- test_data %>% select(-SK_ID_CURR) %>% data.matrix()
+  target <- train_data$TARGET
+  # set seed
+  set.seed(831)
+  # xgboost cross validation to choice best parameter
+  xgb_cv <- 
+    xgb.cv(data = xgb.DMatrix(data = train, label = target),
+           params = xgb_params,
+           missing = NA,
+           nfold = 5, 
+           nrounds = 2000,
+           verbose = TRUE,
+           prediction = TRUE,                                           # return the prediction using the final model 
+           showsd = TRUE,                                               # standard deviation of loss across folds
+           stratified = TRUE, 
+           print_every_n = 10,
+           early_stopping_rounds = 200 )
+  # xgboost modeling  
+  xgb_model <- 
+    xgboost(data = xgb.DMatrix(data = train, label = target),
+            params = xgb_params,
+            nrounds = xgb_cv$best_iteration, # max number of trees to build
+            verbose = TRUE,                                         
+            print_every_n = 10,
+            early_stopping_rounds = 200 )
+  # Visualize important value
+  xgb.importance(model = xgb_model) %>% 
+    xgb.plot.importance(top_n = 30) %>% print()
+  # predict
+  pred_test <- predict(xgb_model,test)
+
+  # make submit style
+  submit <- data.frame(test_data,TARGET = pred_test) %>% 
+    select(SK_ID_CURR,TARGET) %>% 
+    mutate(SK_ID_CURR = SK_ID_CURR %>% as.integer())
+
+  # file name + submit date
+  path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "") # for mac
+  path_name <- paste("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "") # for windows
+
+  # export
+  write_csv(submit,path = path_name)
+  return(xgb_model)
+}
+```
+
+
+```{r}
+XgboostFeatureSelect <- function(xgb_params,file_name,train_data,test_data){
   # using column 
   alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
+  alr <- read_tsv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for windows
+
   # set data
   train <- train_data %>% select(-TARGET) %>% select(alr$Feature) %>%  data.matrix()
   test <- test_data %>% select(-SK_ID_CURR) %>% select(alr$Feature) %>% data.matrix()
@@ -152,13 +256,17 @@ XgboostPred <- function(xgb_params,file_name,train_data,test_data){
     mutate(SK_ID_CURR = SK_ID_CURR %>% as.integer())
 
   # file name + submit date
-  path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "")
+  path_name <- paste("~/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "") # for mac
+  path_name <- paste("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/submit/",file_name,Sys.Date(),".csv",sep = "") # for windows
+
   # export
   write_csv(submit,path = path_name)
   return(xgb_model)
 }
+```
 
-XgboostSelect <- function(xgb_params,train_data,test_data){
+```{r}
+XgboostFeatureSearch <- function(xgb_params,train_data,test_data){
   # not need column
   alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
   alr <- read_tsv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for windows
@@ -190,15 +298,25 @@ XgboostSelect <- function(xgb_params,train_data,test_data){
             verbose = TRUE,                                         
             print_every_n = 10,
             early_stopping_rounds = 200 )
-  tmp <- xgb.importance(model = xgb_model) %>% 
-    select(Feature)
+  # extract Features
+  tmp <- xgb.importance(model = xgb_model) %>% select(Feature)
   # 優れた50個を抽出し,元データと結合する
   tmp <- rbind(alr,tmp[1:50,])
   # save file
   write_tsv(tmp,"~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
   write_tsv(tmp,"C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for windows
 }
+```
 
+## xgboost parameter tuning
+
+- XgboostTune:
+    - parameter setting
+    - 10-fold cross-validation
+    - output param and best iter
+    - combine by rbind
+    
+```{r}
 ##### 要変更 #####
 XgboostTune <- function(params, train_data){
   # function for as.list 
@@ -233,35 +351,6 @@ XgboostTune <- function(params, train_data){
     return()
 }
 ```
-
-## execute xgboost model
-
-- test 
-
-```{r}
-# xgboost fitting with arbitrary parameters
-xgb_params = list(
-  objective = "binary:logistic", # binary classification
-  booster = "gbtree",
-  eval_metric = "auc",
-  nthread = 8,
-  eta = 0.025,
-  max_depth = 6,
-  min_child_weight = 20,
-  gamma = 0,
-  subsample = 0.85,
-  colsample_bytree = 0.7,
-  colsample_bylevel = 0.632,
-  alpha = 0,
-  lambda = 0.05
-)
-# set file name
-file_name <- "best_data_top_50"
-# execute xgboost
-XgboostPred(xgb_params,file_name,train_data,test_data)
-```
-
-## xgboost parameter tuning
 
 ```{r eval=FALSE}
 # xgboost fitting with arbitrary parameters
