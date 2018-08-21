@@ -102,7 +102,7 @@ install_pay <- install_pay %>%
          PAYMENT_DIFF_add = AMT_INSTALMENT - AMT_PAYMENT,
          DPD_add = DAYS_ENTRY_PAYMENT - DAYS_INSTALMENT,
          DBD_add = DAYS_INSTALMENT - DAYS_ENTRY_PAYMENT,
-         DBD_DIFF_add = abs(DPD)) 
+         DBD_DIFF_add = abs(DPD_add)) 
 ```
 
 ## Summarize
