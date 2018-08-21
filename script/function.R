@@ -65,7 +65,7 @@ ImputeMissingValueRF <- function(data,patterns){
   stopCluster(cl)
   # reaname data
   ans <- imp$ximp %>% 
-    select_if(grepl(paste(patterns, collapse="|"),names(.)))
+    select(patterns)
   colnames(ans) <- paste(patterns,"_imp",sep = "")
   return(ans)
 }
@@ -83,7 +83,7 @@ ImputeMissingValueMI <- function(data,patterns){
   tmp <- complete(imp,1:4)
   ans <- data.frame( (tmp$`chain:1` + tmp$`chain:2` + tmp$`chain:3` + tmp$`chain:4`) / 4 ) %>% 
     select_if(!grepl("missing",names(.))) %>% 
-    select_if(grepl(paste(patterns, collapse="|"),names(.)))
+    select(patterns)
   # rename data
   colnames(ans) <- paste(patterns,"_imp",sep = "")
   return(ans)
