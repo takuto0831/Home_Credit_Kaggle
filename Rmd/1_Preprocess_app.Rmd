@@ -611,6 +611,22 @@ app_test <- app_test %>%
   select(-c(tmp1,tmp2,tmp3))
 ```
 
+```{r}
+patterns <- c("EXT_SOURCE_1", "EXT_SOURCE_2","EXT_SOURCE_3")
+# make new column
+tmp1 <- app_train %>% 
+  select_if(grepl("EXT_SOURCE",names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+tmp2 <- app_test %>% 
+  select_if(grepl("EXT_SOURCE",names(.))) %>% 
+  mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
+  ImputeMissingValueTSNE(patterns)
+# combine data
+app_train <- cbind(app_train,tmp1)
+app_test <- cbind(app_test,tmp2)
+```
+
 ### AVG
 
 - 欠損値に0を代入してRtsneを実行
