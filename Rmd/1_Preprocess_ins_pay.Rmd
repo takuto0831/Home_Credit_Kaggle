@@ -96,6 +96,15 @@ install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments.
 
 - 新しい特徴量を作成する
 
+```{r}
+install_pay <- install_pay %>% 
+  mutate(PAYMENT_PERC = AMT_PAYMENT / AMT_INSTALMENT,
+         PAYMENT_DIFF = AMT_INSTALMENT - AMT_PAYMENT,
+         DPD = DAYS_ENTRY_PAYMENT - DAYS_INSTALMENT,
+         DBD = DAYS_INSTALMENT - DAYS_ENTRY_PAYMENT,
+         DBD_DIF = abs(DPD)) 
+```
+
 ## Summarize
 
 - *NAがInf or - Infになることに注意する*(max,min 計算時)
