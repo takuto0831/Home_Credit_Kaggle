@@ -123,8 +123,7 @@ patterns <- c("CNT_DRAWINGS_ATM_CURRENT","CNT_DRAWINGS_OTHER_CURRENT", "CNT_DRAW
 tmp1 <- ImputeMissingValueRF(data1,patterns)
 
 # データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
+credit_card <- cbind(credit_card,tmp1)
 ```
 
 ## add new column{.tabset .tabset-fade .tabset-pills}
