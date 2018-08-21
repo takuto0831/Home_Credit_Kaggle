@@ -86,15 +86,157 @@ previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application.
 - Add `_imp` to the supplemented column
 - Add `_add` to the added column
 
+## check value
+
+- 外れ値をNAとする
+
+```{r}
+previous_app <- previous_app %>% 
+  mutate(DAYS_FIRST_DRAWING = ifelse(DAYS_FIRST_DRAWING == 365243, NA, DAYS_FIRST_DRAWING),
+         DAYS_FIRST_DUE = ifelse(DAYS_FIRST_DUE == 365243, NA, DAYS_FIRST_DUE),
+         DAYS_LAST_DUE_1ST_VERSION = ifelse(DAYS_LAST_DUE_1ST_VERSION == 365243, NA, DAYS_LAST_DUE_1ST_VERSION),
+         DAYS_LAST_DUE = ifelse(DAYS_LAST_DUE == 365243, NA, DAYS_LAST_DUE),
+         DAYS_TERMINATION = ifelse(DAYS_TERMINATION == 365243, NA, DAYS_TERMINATION))
+```
+
+
 ## impute missing values{.tabset .tabset-fade .tabset-pills}
 
 - 検証内容
     - データ特性に従って欠損値を推定
     - 多重代入法などのアルゴリムに従って, 欠損値を推定
+    
+### NAME_TYPE_SUITE
+
+```{r eval=TRUE}
+previous_app <- previous_app %>% 
+  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
+```
+
+### AMT_
+
+- AMT_ANNUITY
+- AMT_APPLICATION (欠損なし)
+- AMT_CREDIT
+- AMT_DOWN_PAYMENT
+- AMT_GOODS_PRICE
+
+```{r eval=FALSE}
+previous_app %>% 
+  select_if(grepl("AMT",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+previous_app %>% 
+  select_if(grepl("AMT",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r}
+# data
+data1 <- previous_app %>% select_if(grepl("AMT",names(.)))
+# str_c(a,collapse = "', '")
+patterns <- c("AMT_ANNUITY","AMT_CREDIT","AMT_DOWN_PAYMENT","AMT_GOODS_PRICE")
+# 欠損値補完
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+# データ結合
+previous_app <- cbind(previous_app,tmp1)
+```
+
+### DAYS
+
+- DAYS_DECISION
+- DAYS_FIRST_DRAWING
+- DAYS_FIRST_DUE
+- DAYS_LAST_DUE_1ST_VERSION
+- DAYS_LAST_DUE
+- DAYS_TERMINATION
+
+```{r eval=FALSE}
+previous_app %>% 
+  select_if(grepl("DAYS",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+previous_app %>% 
+  select_if(grepl("DAYS",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+```{r}
+# data
+data1 <- previous_app %>% select_if(grepl("DAYS",names(.)))
+# str_c(a,collapse = "', '")
+patterns <- c("DAYS_FIRST_DRAWING","DAYS_FIRST_DUE","DAYS_LAST_DUE_1ST_VERSION","DAYS_LAST_DUE","DAYS_TERMINATION")
+# 欠損値補完
+tmp1 <- ImputeMissingValueMI(data1,patterns)
+# データ結合
+previous_app <- cbind(previous_app,tmp1)
+```
+
+### RATE
+
+- 特に関係ない
+
+```{r eval=FALSE}
+previous_app %>% 
+  select_if(grepl("RATE",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  qgraph(edge.labels=T)
+
+previous_app %>% 
+  select_if(grepl("RATE",names(.))) %>% 
+  na.omit() %>%
+  cor() %>% 
+  cor.plot(numbers = TRUE)
+```
+
+### NAME
+
+```{r eval=FALSE}
+previous_app %>% 
+  select(NAME_PORTFOLIO,NAME_GOODS_CATEGORY) %>% 
+  table(exclude = NULL)
+
+previous_app %>% 
+  select(NAME_CLIENT_TYPE,NAME_GOODS_CATEGORY) %>% 
+  table(exclude = NULL)
+
+previous_app %>% 
+  select(NAME_SELLER_INDUSTRY,NAME_GOODS_CATEGORY) %>% 
+  table(exclude = NULL)
+```
 
 ## add new column{.tabset .tabset-fade .tabset-pills}
 
 - 新しい特徴量を作成する
+
+### AMT
+
+```{r}
+# data
+data1 <- previous_app %>% select("AMT_APPLICATION","AMT_ANNUITY_imp","AMT_CREDIT_imp","AMT_DOWN_PAYMENT_imp","AMT_GOODS_PRICE_imp")
+# str_c(a,collapse = "', '")
+patterns <- c("AMT_TSNE_1","AMT_TSNE_2")
+# 欠損値補完
+tmp1 <- ImputeMissingValueTSNE(data1,patterns)
+# データ結合
+previous_app <- cbind(previous_app,tmp1)
+```
+
+```{r}
+previous_app %>% previous_app %>% 
+  mutate(APP_CREDIT_PERC_add = AMT_APPLICATION / AMT_CREDIT,
+         CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
+         CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE)
+```
 
 ## Summarize
 
