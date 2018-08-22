@@ -577,6 +577,29 @@ app_test <- app_test %>%
 
 - 新しい特徴量を作成する
 
+### AMT
+
+```{r}
+app_train <- app_train %>% 
+  mutate(CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
+         CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE,
+         CREDIT_INCOME_PERC_add = AMT_CREDIT / AMT_INCOME_TOTAL,
+         INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
+         EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
+         OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
+         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS
+         )
+app_test <- app_test %>% 
+    mutate(CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
+         CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE,
+         CREDIT_INCOME_PERC_add = AMT_CREDIT / AMT_INCOME_TOTAL,
+         INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
+         EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
+         OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
+         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS
+         )
+```
+
 ### EXT_SOURCE_??
 
 - data list
