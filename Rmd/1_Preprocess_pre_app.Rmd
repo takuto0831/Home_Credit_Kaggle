@@ -232,7 +232,7 @@ previous_app <- cbind(previous_app,tmp1)
 ```
 
 ```{r}
-previous_app %>% previous_app %>% 
+previous_app <- previous_app %>% 
   mutate(APP_CREDIT_PERC_add = AMT_APPLICATION / AMT_CREDIT,
          CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
          CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE)
