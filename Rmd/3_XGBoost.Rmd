@@ -312,13 +312,12 @@ XgboostFeatureSearch <- function(xgb_params,train_data,test_data){
 
 - XgboostTune:
     - parameter setting
-    - 10-fold cross-validation
+    - 5-fold cross-validation
     - output param and best iter
     - combine by rbind
     
 ```{r}
-##### 要変更 #####
-XgboostTune <- function(params, train_data){
+XgboostTune <- function(params, train,target){
   # function for as.list 
   one_entry <- function(x) {
     for (i in length(x)) attr(x[[i]], "names") <- NULL
@@ -331,11 +330,10 @@ XgboostTune <- function(params, train_data){
   set.seed(831)
   # xgboost cross validation to choice best parameter
   xgb_cv <- 
-    xgb.cv(data = xgb.DMatrix(data = train_data %>% select(-TARGET) %>% data.matrix(),
-                              label = train_data$TARGET),
+    xgb.cv(data = xgb.DMatrix(data = train,label = target),
            params = xgb_params,
            missing = NA,
-           nfold = 10, 
+           nfold = 5, 
            nrounds = 2000,
            verbose = TRUE,
            prediction = TRUE,                                           # return the prediction using the final model 
@@ -359,18 +357,33 @@ xgbGrid <- expand.grid(
   booster = "gbtree",
   eval_metric = "auc",
   nthread = c(8),
-  max_depth = c(6,7,8,9,10),
-  eta = c(0.05, 0.1),
-  gamma = c(0.01),
-  subsample = c(0.85),
-  min_child_weight = c(20),
-  colsample_bytree = c(0.75),
-  colsample_bylevel = c(0.632),
+  max_depth = c(5,6,7,8,9),
+  eta = c(0.05, 0.1,0.15,0.20,0.25,0.30),
+  gamma = c(0.01,0.1),
+  subsample = c(0.3,0.6,0.8),
+  min_child_weight = c(5,10,20),
+  colsample_bytree = c(0.3,0.5,0.7),
+  colsample_bylevel = c(0.3,0.5,0.7),
   alpha = c(0),
   lambda = c(0.05))
+```
+
+```{r}
+# preprocess
+ans <- c()
+# using column 
+alr <- read_tsv("~/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for mac
+alr <- read_tsv("C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/best_para.tsv") # for windows
+# set data
+train <- train_data %>% select(-TARGET) %>% select(alr$Feature) %>%  data.matrix()
+target <- train_data$TARGET
 
 # execute xgboost
-tmp <- XgboostTune(params = xgbGrid[1,],train_data[1:1000,])
+for (i in 1:nrow(xgbGrid)) {
+  ans <- XgboostTune(params = xgbGrid[i,],train,target) %>% rbind(ans,.)
+  write_tsv(ans,"~/Desktop/Home_Credit_Kaggle/data/tuning_result_feature_100.tsv") # for mac
+  write_tsv(tmp,"C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/tuning_result_feature_100.tsv") # for windows
+}
 ```
 
 ## caret package
