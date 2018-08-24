@@ -2,4 +2,4 @@
 [876]	train-auc:0.869460+0.000980	test-auc:0.788556+0.001951 LB:0.786
 
 *** best 100 features, best para, dep 5, 5folds ***
-[1064]	train-auc:0.867072+0.000609	test-auc:0.788245+0.002079
+[1064]	train-auc:0.867072+0.000609	test-auc:0.788245+0.002079 LB 0.783
