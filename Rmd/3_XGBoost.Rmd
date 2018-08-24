@@ -380,6 +380,7 @@ target <- train_data$TARGET
 
 # execute xgboost
 for (i in 1:nrow(xgbGrid)) {
+  sprintf("grid count: %d",i) # 番号表示
   ans <- XgboostTune(params = xgbGrid[i,],train,target) %>% rbind(ans,.)
   write_tsv(ans,"~/Desktop/Home_Credit_Kaggle/data/tuning_result_feature_100.tsv") # for mac
   write_tsv(ans,"C:/Users/shiohama/Desktop/Home_Credit_Kaggle/data/tuning_result_feature_100.tsv") # for windows
