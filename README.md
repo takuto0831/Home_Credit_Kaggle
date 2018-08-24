@@ -25,7 +25,7 @@
 - 1_Preprocess_pos_cash.Rmd: Preprocessing for POS_CASH_balance.csv
 - 1_Preprocess_credit.Rmd: Preprocessing for credit_card_balance.csv
 - 2_Combine.Rmd: Combining all data and Checking for data
-- 3_XGBoost.Rmd: xgboostによるモデル構築, 予測, 提出ファイルの作成
+- 3_XGBoost.Rmd: construct xgboost model, predict, make a submit file, search best features, parameter tune
 
 ## script.file
  
@@ -35,8 +35,7 @@
 ## submit.file
 
 - ファイル名: [file_name] + [submit_date].csv
-- file_name: データの詳細な構造
-- submit_data: 作成日
+- (file_name: データの詳細な構造, submit_data: 作成日)
 
 ## about_column.numbers
 
@@ -46,20 +45,21 @@
 
 ## csv.file
 
-- 配布データ
+- 配布された元データ
 
 ## csv_imp.file
 
-*日付付きで Boxに保存してある*
-
-- 欠損処理等を実行したデータ
-- 全てのテーブルを結合したデータ(all_data_train.csv)
+- 日付付きでboxに保存してある
+- 欠損処理等を実行したデータ(~_imp.csv)
+- 全てのテーブルを結合したデータ(all_data_train.csv,all_data_test,csv)
 
 ## data.file
 
 - xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
-# Layered Directory
+- 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para.tsv)
+- train auc, test auc, LB score 等をメモ形式で保存(score_sheet.tsv)
 
+# Layered Directory
  
 ```
 ├── Home_Credit_Kaggle.Rproj
@@ -89,7 +89,9 @@
 │   ├── previous_application.csv
 │   └── sample_submission.csv
 ├── data
-│   └── best_para.tsv
+│   ├── best_para.tsv
+│   ├── best_para_old_100.tsv
+│   └── score_sheet.tsv
 └── script
    ├── function.R
    └── makedummies.R 
