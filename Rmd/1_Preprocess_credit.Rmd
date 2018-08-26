@@ -86,6 +86,16 @@ credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/credit_card_balance.cs
 - Add `_imp` to the supplemented column
 - Add `_add` to the added column
 
+## Check value
+
+```{r}
+credit_card <- credit_card %>% 
+  mutate(
+    AMT_DRAWINGS_ATM_CURRENT = ifelse(AMT_DRAWINGS_ATM_CURRENT<0, 0, AMT_DRAWINGS_ATM_CURRENT),
+    AMT_DRAWINGS_CURRENT = ifelse(AMT_DRAWINGS_CURRENT<0, 0, AMT_DRAWINGS_CURRENT)
+  )
+```
+
 ## impute missing values{.tabset .tabset-fade .tabset-pills}
 
 - 検証内容
@@ -114,7 +124,7 @@ credit_card %>%
   cor.plot(numbers = TRUE)
 ```
 
-```{r}
+```{r eval=FALSE}
 # data
 data1 <- credit_card %>% select_if(grepl("CNT",names(.)))
 # str_c(a,collapse = "', '")
@@ -130,7 +140,7 @@ credit_card <- cbind(credit_card,tmp1)
 
 - 新しい特徴量を作成する
 
-```{r}
+```{r eval=FALSE}
 # need list
 tmp <-  c("AMT_BALANCE","AMT_CREDIT_LIMIT_ACTUAL","AMT_DRAWINGS_CURRENT","AMT_PAYMENT_TOTAL_CURRENT","AMT_RECIVABLE")
 # name list
@@ -143,6 +153,21 @@ tmp1 <- credit_card %>%
 # データ結合
 credit_card <- cbind(credit_card,tmp1)
 ```
+
+### other
+
+```{r}
+credit_card <- credit_card %>% 
+  mutate(
+    CNT_ATM_INSTALMENT_PERC_add = CNT_DRAWINGS_ATM_CURRENT/CNT_INSTALMENT_MATURE_CUM,
+    CNT_ALL_INSTALMENT_PERC_add = CNT_DRAWINGS_CURRENT/CNT_INSTALMENT_MATURE_CUM,
+    CNT_OTHER_INSTALMENT_PERC_add = CNT_DRAWINGS_OTHER_CURRENT/CNT_INSTALMENT_MATURE_CUM,
+    CNT_POS_INSTALMENT_PERC_add = CNT_DRAWINGS_POS_CURRENT/CNT_INSTALMENT_MATURE_CUM,
+    AMT_BALANCE_LIMIT_PERC_add = AMT_BALANCE / AMT_CREDIT_LIMIT_ACTUAL,
+    ATM_USING_DIFF_add = AMT_DRAWINGS_CURRENT - AMT_DRAWINGS_ATM_CURRENT
+  )
+```
+
 ## Summarize
 
 - *NAがInf or - Infになることに注意する*(max,min 計算時)
