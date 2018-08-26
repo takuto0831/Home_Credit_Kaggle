@@ -100,7 +100,8 @@ pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/POS_CASH_balance.csv",na 
 #SK_DPD, SK_DPD_DEF は複数あるため rename
 pos_cash <- pos_cash %>% 
   mutate(CNT_PERC_add = CNT_INSTALMENT / CNT_INSTALMENT_FUTURE,
-         CNT_DIFF_add = CNT_INSTALMENT - CNT_INSTALMENT_FUTURE) %>% 
+         CNT_DIFF_add = CNT_INSTALMENT - CNT_INSTALMENT_FUTURE,
+         INSTALL_BALANCE_POS_PERC_add = CNT_INSTALMENT / MONTHS_BALANCE) %>% 
   rename(SK_DPD_POS = SK_DPD, 
          SK_DPD_DEF_POS = SK_DPD_DEF)
 ```
