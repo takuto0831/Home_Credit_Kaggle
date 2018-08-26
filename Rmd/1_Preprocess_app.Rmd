@@ -88,6 +88,19 @@ app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na 
 - Add `_imp` to the supplemented column
 - Add `_add` to the added new column
 
+## Check value 
+
+- 外れ値を欠損値とする
+
+```{r}
+app_train <- app_train %>% 
+  mutate(DAYS_EMPLOYED = ifelse(DAYS_EMPLOYED == 365243, NA, DAYS_EMPLOYED),
+         DAYS_LAST_PHONE_CHANGE = ifelse(DAYS_LAST_PHONE_CHANGE == 0, NA, DAYS_LAST_PHONE_CHANGE))
+app_test <- app_test %>% 
+  mutate(DAYS_EMPLOYED = ifelse(DAYS_EMPLOYED == 365243, NA, DAYS_EMPLOYED),
+         DAYS_LAST_PHONE_CHANGE = ifelse(DAYS_LAST_PHONE_CHANGE == 0, NA, DAYS_LAST_PHONE_CHANGE))
+```
+
 ## impute missing values{.tabset .tabset-fade .tabset-pills}
 
 - 検証内容
@@ -587,16 +600,34 @@ app_train <- app_train %>%
          INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
          EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
          OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
-         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS
+         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS,
+         OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
+         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / CNT_FAM_MEMBERS,
+         PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
+         PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
+         CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
+         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / CNT_FAM_MEMBERS,
+         CNT_NON_CHILD_add = CNT_FAM_MEMBERS - CNT_CHILDREN,
+         INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
+         CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
          )
 app_test <- app_test %>% 
-    mutate(CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
+  mutate(CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
          CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE,
          CREDIT_INCOME_PERC_add = AMT_CREDIT / AMT_INCOME_TOTAL,
          INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
          EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
          OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
-         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS
+         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS,
+         OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
+         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / CNT_FAM_MEMBERS,
+         PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
+         PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
+         CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
+         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / CNT_FAM_MEMBERS,
+         CNT_NON_CHILD_add = CNT_FAM_MEMBERS - CNT_CHILDREN,
+         INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
+         CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
          )
 ```
 
@@ -623,7 +654,8 @@ app_train <- app_train %>%
   mutate(tmp1 = EXT_SOURCE_1,tmp2 = EXT_SOURCE_2,tmp3 = EXT_SOURCE_3) %>% 
   mutate_at(vars(matches("tmp",.)), funs(ifelse(is.na(.),0,.))) %>% 
   mutate(EXT_SOURCE_SUM_add = round(tmp1 + tmp2 + tmp3, digits = 4)) %>% 
-  mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3, digits = 4)) %>% 
+  mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3, digits = 4)) %>%
+  mutate(EXT_SOURCE_MEAN_add = round(mean(c(tmp1,tmp2,tmp3),na.rm=TRUE),digits = 4)) %>% 
   select(-c(tmp1,tmp2,tmp3))
 
 app_test <- app_test %>% 
@@ -631,10 +663,11 @@ app_test <- app_test %>%
   mutate_at(vars(matches("tmp",.)), funs(ifelse(is.na(.),0,.))) %>% 
   mutate(EXT_SOURCE_SUM_add = round(tmp1 + tmp2 + tmp3,digits = 4)) %>% 
   mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3,digits = 4)) %>% 
+  mutate(EXT_SOURCE_MEAN_add = round(mean(c(tmp1,tmp2,tmp3),na.rm=TRUE),digits = 4)) %>% 
   select(-c(tmp1,tmp2,tmp3))
 ```
 
-```{r}
+```{r eval=FALSE}
 patterns <- c("EXT_TSNE_1", "EXT_TSNE_2")
 # make new column
 tmp1 <- app_train %>% 
