@@ -6,3 +6,6 @@
 
 *** best 200 features, best para, dep 5, 5folds *** 
 [1019]	train-auc:0.875619+0.000436	test-auc:0.790217+0.002200 LB 0.788
+
+*** best 300 features, best para, dep 5, 5folds *** 
+[754]	train-auc:0.864491+0.000896	test-auc:0.791643+0.002246 LB 0.792
