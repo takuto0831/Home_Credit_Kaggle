@@ -173,7 +173,7 @@ xgb_params = list(
 
 ```{r}
 # set file name
-file_name <- "best_para_Feature_200"
+file_name <- "best_para_Feature_400"
 ```
 
 ## xgboost excecute
