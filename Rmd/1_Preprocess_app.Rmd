@@ -50,6 +50,7 @@ library(readr) # for csv
 library(summarytools) # summary easily for EDA
 library(GGally) # ggpairs
 library(skimr) 
+library(janitor)
 library(missForest)
 library(imputeMissings)
 library(mi)
@@ -64,21 +65,26 @@ library(Rtsne)
 
 ```{r cache=FALSE}
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 ```
 
 ## read csv
 
-- Missing value
-na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する.
-
-- convert charcter type into factor type
+- Missing values: na = c("XNA","NA","","NaN","?")
+- convert charcter type into factor type: 
+- remove duplicate column names and change the small letters
+- add `_app` to all column names
 
 ```{r}
-# 訓練データ, テストデータ
+# train data and test data
 app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
-    mutate_if(is.character, funs(factor(.)))
+    mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_app",sep=""))
 app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_app",sep=""))
 ```
 
 # Preprocess
