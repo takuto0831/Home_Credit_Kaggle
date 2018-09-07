@@ -4,12 +4,15 @@
 
 - [Home_Credit_Kaggle](#home_credit_kaggle)
   - [Rmd.file](#rmdfile)
+  - [jn.file](#jnfile)
+  - [py.fiel](#pyfiel)
   - [script.file](#scriptfile)
   - [submit.file](#submitfile)
   - [about_column.numbers](#about_columnnumbers)
   - [csv.file](#csvfile)
   - [csv_imp.file](#csv_impfile)
   - [data.file](#datafile)
+- [Layered Directory](#layered-directory)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -26,6 +29,14 @@
 - 1_Preprocess_credit.Rmd: Preprocessing for credit_card_balance.csv
 - 2_Combine.Rmd: Combining all data and Checking for data
 - 3_XGBoost.Rmd: construct xgboost model, predict, make a submit file, search best features, parameter tune
+
+## jn.file
+
+jupyter notebokによるメモ書き, kernel sessionに関する記述などをまとめておく
+
+- LightGBM.ipynb: lightgbmによる分析コードのまとめ
+
+## py.fiel
 
 ## script.file
  
@@ -92,6 +103,12 @@
 │   ├── best_para.tsv
 │   ├── best_para_old_100.tsv
 │   └── score_sheet.tsv
+├── jn
+│   ├── LightGBM.ipynb 
+│   └── 
+├── py
+│   ├──  
+│   └── 
 └── script
    ├── function.R
    └── makedummies.R 
