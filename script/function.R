@@ -7,7 +7,7 @@
 # CheckCategoryColumn: uniqueな値が100(要考察)以下の場合, カテゴリカル変数とする
 # ImputeMissingValueRF: Random Forest による欠損値補完
 # ImputeMissingValueRF: Multiple imputing による欠損値補完
-# ImputeMissingValueTSNE:  Rstneによる特徴量作成関数
+# MakeNewValueTSNE: Rstneによる特徴量作成関数
 # SummarizeFunc: データをSK_ID_CURRごとにまとめる関数 (binaryとnumericalで処理を変更する)
 
 ########################################################################################
@@ -76,7 +76,7 @@ ImputeMissingValueMI <- function(data,patterns){
   imp <- data %>% 
     as.data.frame() %>% 
     missing_data.frame() %>% 
-    mi(n.iter = 50, n.chains = 4, max.minutes = 2000, parallel = TRUE)
+    mi(n.iter = 30, n.chains = 4, max.minutes = 2000, parallel = TRUE)
   stopCluster(cl)
   # extract value
   tmp <- complete(imp,1:4)
@@ -88,14 +88,14 @@ ImputeMissingValueMI <- function(data,patterns){
   return(ans)
 }
 
-# ImputeMissingValueTSNE
-ImputeMissingValueTSNE <- function(data,patterns){
+# MakeNewValueTSNE
+MakeNewValueTSNE <- function(data,patterns){
   set.seed(831) # 再現性の確保
-  # impute missing value
+  # MakeNewValueTSNE
   ans <- data %>% 
-    Rtsne(check_duplicates = FALSE, verbose=TRUE, theta = 0.3) %>% .$Y
+    Rtsne(check_duplicates = FALSE, verbose=TRUE, theta = 0.5) %>% .$Y
   # rename data
-  colnames(ans) <- paste(patterns,"_imp",sep = "")
+  colnames(ans) <- paste(patterns,"_add",sep = "")
   return(ans)
 }
 
