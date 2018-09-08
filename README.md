@@ -16,7 +16,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-![flowchart](https://github.com/Home_Credit_Kaggle/data/FlowChart.eddx)
+![flowchart](https://github.com/Home_Credit_Kaggle/data/FlowChart.png)
 
 # Home_Credit_Kaggle
 
