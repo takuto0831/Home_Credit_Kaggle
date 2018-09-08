@@ -52,15 +52,17 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 - ファイル名: [file_name] + [submit_date].csv
 - (file_name: データの詳細な構造, submit_data: 作成日)
 
-## csv.file
+## input
+
+### csv.file
 
 - raw data
 
-## csv_imp0.file
+### csv_imp0.file
 
 - Flow Chart における Process1による結果
 
-## csv_imp1.file
+### csv_imp1.file
 
 - 日付付きでboxに保存してある
 - 欠損処理, 特徴量抽出を実行したデータ(~_imp.csv)
@@ -94,17 +96,33 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 │   ├── 2_Combine.Rmd
 │   ├── 3_XGBoost.Rmd
 │   └── EDA.html
-├── csv
-│   ├── HomeCredit_columns_description.csv
-│   ├── POS_CASH_balance.csv
-│   ├── application_test.csv
-│   ├── application_train.csv
-│   ├── bureau.csv
-│   ├── bureau_balance.csv
-│   ├── credit_card_balance.csv
-│   ├── installments_payments.csv
-│   ├── previous_application.csv
-│   └── sample_submission.csv
+├── input
+│   ├── csv
+│   │   ├── HomeCredit_columns_description.csv
+│   │   ├── POS_CASH_balance.csv
+│   │   ├── application_test.csv
+│   │   ├── application_train.csv
+│   │   ├── bureau.csv
+│   │   ├── bureau_balance.csv
+│   │   ├── credit_card_balance.csv
+│   │   ├── installments_payments.csv
+│   │   ├── previous_application.csv
+│   │   └── sample_submission.csv
+│   ├── csv_imp0
+│   │   ├── POS_CASH_balance.csv
+│   │   ├── application_test.csv
+│   │   ├── application_train.csv
+│   │   ├── bureau.csv
+│   │   ├── bureau_balance.csv
+│   │   ├── credit_card_balance.csv
+│   │   ├── installments_payments.csv
+│   │   └── previous_application.csv
+│   └── csv_imp1
+│       ├── all_data_test.csv
+│       ├── all_data_train.csv
+│       ├── application_test_imp.csv
+│       ├── application_train_imp.csv
+│       └── credit_card_balance_imp.csv
 ├── data
 │   ├── best_para.tsv
 │   ├── best_para_old_100.tsv
@@ -118,6 +136,7 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 ├── py
 │   ├──  
 │   └── 
+├── submit
 └── script
    ├── function.R
    └── makedummies.R 
