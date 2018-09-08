@@ -16,7 +16,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-![flowchart](data/FlowChart.png)
+![flowchart](data/FlowChart.png=100x20)
 
 # Home_Credit_Kaggle
 
@@ -38,7 +38,7 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 
 - LightGBM.ipynb: lightgbmによる分析コードのまとめ
 
-## py.fiel
+## py.file
 
 ## script.file
  
