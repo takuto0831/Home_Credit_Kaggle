@@ -16,7 +16,10 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-![flowchart](data/FlowChart.png=100x20)
+# Flow Chart
+
+<img src="data/FlowChart.png" width="300px">
+<img src="data/FlowChart.png" width="400px">
 
 # Home_Credit_Kaggle
 
