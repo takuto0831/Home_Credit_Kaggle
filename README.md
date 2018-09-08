@@ -2,10 +2,11 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Flow Chart](#flow-chart)
 - [Home_Credit_Kaggle](#home_credit_kaggle)
   - [Rmd.file](#rmdfile)
   - [jn.file](#jnfile)
-  - [py.fiel](#pyfiel)
+  - [py.file](#pyfile)
   - [script.file](#scriptfile)
   - [submit.file](#submitfile)
   - [about_column.numbers](#about_columnnumbers)
