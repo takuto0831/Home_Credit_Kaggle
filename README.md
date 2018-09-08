@@ -19,7 +19,6 @@
 # Flow Chart
 
 <img src="data/FlowChart.png" width="1000px">
-<img src="data/FlowChart.png" width="1200px">
 
 # Home_Credit_Kaggle
 
@@ -74,13 +73,13 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 - xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
 - 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para.tsv)
 - train auc, test auc, LB score 等をメモ形式で保存(score_sheet.tsv)
+- Flowchart作成図(Flowchart.eddx, FlowChart.png)
 
 # Layered Directory
  
 ```
 ├── Home_Credit_Kaggle.Rproj
 ├── README.md
-├── about_column.numbers
 ├── Rmd
 │   ├── 0_EDA.Rmd
 │   ├── 1_Preprocess_app.Rmd
@@ -107,7 +106,10 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 ├── data
 │   ├── best_para.tsv
 │   ├── best_para_old_100.tsv
-│   └── score_sheet.tsv
+│   ├── about_column.numbers
+│   ├── FlowChart.eddx
+│   ├── FLowChart.png
+│   └── score_sheet.tsv
 ├── jn
 │   ├── LightGBM.ipynb 
 │   └── 
