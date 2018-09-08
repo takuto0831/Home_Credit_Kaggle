@@ -9,8 +9,10 @@
   - [py.file](#pyfile)
   - [script.file](#scriptfile)
   - [submit.file](#submitfile)
-  - [csv.file](#csvfile)
-  - [csv_imp.file](#csv_impfile)
+  - [input](#input)
+    - [csv.file](#csvfile)
+    - [csv_imp0.file](#csv_imp0file)
+    - [csv_imp1.file](#csv_imp1file)
   - [data.file](#datafile)
 - [Layered Directory](#layered-directory)
 
