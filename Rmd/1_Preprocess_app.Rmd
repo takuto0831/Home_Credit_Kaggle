@@ -8,12 +8,16 @@ output:
       toc_depth: 3
 ---
 
+# About application data
+
 ## Data description
 
 - application_{train|test}.csv (122|121 variables)
     - Key variable: SK_ID_CURR
-    - Objective variable: TARGET(1:返済困難, 0: other, 連続値)
-    - About: 全てのアプリケーションのデータ
+    - Objective variable: TARGET(1:bad, 0: good)
+    - About: all application data
+
+## Task
 
 # Setting{.tabset .tabset-fade .tabset-pills}
 
@@ -42,8 +46,6 @@ opts_knit$set(width=75)
 
 ## Library package
 
-- 必要なパッケージを適宜追加
-
 ```{r package, message=FALSE}
 library(tidyverse)
 library(readr) # for csv
@@ -70,204 +72,174 @@ source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 
 ## read csv
 
-- Missing values: na = c("XNA","NA","","NaN","?")
-- convert charcter type into factor type: 
-- remove duplicate column names and change the small letters
-- add `_app` to all column names
+- Define missing values: na = c("XNA","NA","","NaN","?",...)
+- Convert charcter's columns into factor's columns 
 
 ```{r}
 # train data and test data
-app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
-    mutate_if(is.character, funs(factor(.))) %>% 
-  clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_app",sep=""))
-app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
-  clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_app",sep=""))
+  
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
 ```
 
 # Preprocess
 
-- Check for imputation values
-- Describe the details on the explanation sheet
-- Add `_imp` to the supplemented column
-- Add `_add` to the added new column
+- Convert outliers into NA
+- Add `_imp` to the complemented column
+- Add `_add` to the made new column
 
-## Check value 
+## Check outliers
 
-- 外れ値を欠損値とする
+- Convert outliers into NA
 
 ```{r}
 app_train <- app_train %>% 
-  mutate(DAYS_EMPLOYED = ifelse(DAYS_EMPLOYED == 365243, NA, DAYS_EMPLOYED),
-         DAYS_LAST_PHONE_CHANGE = ifelse(DAYS_LAST_PHONE_CHANGE == 0, NA, DAYS_LAST_PHONE_CHANGE))
+  mutate(days_employed_app = ifelse(days_employed_app == 365243, NA, days_employed_app),
+         days_last_phone_change_app = ifelse(days_last_phone_change_app == 0, NA, days_last_phone_change_app))
 app_test <- app_test %>% 
-  mutate(DAYS_EMPLOYED = ifelse(DAYS_EMPLOYED == 365243, NA, DAYS_EMPLOYED),
-         DAYS_LAST_PHONE_CHANGE = ifelse(DAYS_LAST_PHONE_CHANGE == 0, NA, DAYS_LAST_PHONE_CHANGE))
+  mutate(days_employed_app = ifelse(days_employed_app == 365243, NA, days_employed_app),
+         days_last_phone_change_app = ifelse(days_last_phone_change_app == 0, NA, days_last_phone_change_app))
 ```
 
 ## impute missing values{.tabset .tabset-fade .tabset-pills}
 
-- 検証内容
-    - データ特性に従って欠損値を推定
-    - 多重代入法などのアルゴリムに従って, 欠損値を推定
+- Complement missing values according to feature of data
+- Add `_imp` to the complemented column
+- Estimate missing values according to algorithms such as multiple imputation method (*later*)
 
-### CODE_GENDER 
+### code_gender_app
 
 - 少ないので放置 (欠損値:4つ)
 
 ```{r eval=FALSE}
 app_train %>% 
-  select(CODE_GENDER) %>% 
-  table(exclude = NULL)
-
+  tabyl(code_gender_app) %>% 
+  
 app_test %>% 
-  select(CODE_GENDER) %>% 
-  table(exclude = NULL)
+  tabyl(code_gender_app) %>% 
 ```
 
-### NAME_TYPE_SUITE
+### name_type_suite_app
 
 - 同行者の情報
 - 無記載 = 同行者なしと考える
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
+  mutate(name_type_suite_app_imp = replace(name_type_suite_app, is.na(name_type_suite_app),"Unaccompanied")) 
 app_test <- app_test %>% 
-  mutate(NAME_TYPE_SUITE_imp = replace(NAME_TYPE_SUITE, is.na(NAME_TYPE_SUITE),"Unaccompanied")) 
+  mutate(name_type_suite_app_imp = replace(name_type_suite_app, is.na(name_type_suite_app),"Unaccompanied")) 
 ```
 
-### OCCUPATION_TYPE
+### occupation_type_app
 
 - other, フリーターの項目がない
 - 所属=NA and 職業=NA -> 無職,無所属
 - 所属=NA, 職業=NA -> other
 
 ```{r eval=FALSE}
-app_train %>% select(OCCUPATION_TYPE) %>% table()
-app_test %>% select(OCCUPATION_TYPE) %>% table()
+app_train %>% tabyl(occupation_type_app) 
+app_test %>% tabyl(occupation_type_app)
 ```
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
-                                      ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
-  mutate(OCCUPATION_TYPE_imp = OCCUPATION_TYPE_imp %>% as.factor())
+  mutate(occupation_type_app_imp = ifelse(!is.na(occupation_type_app),occupation_type_app %>% as.character(),
+                                      ifelse(is.na(organization_type_app),"Unemployed","other"))) %>% 
+  mutate(occupation_type_app_imp = occupation_type_app_imp %>% as.factor())
 
 app_test <- app_test %>% 
-  mutate(OCCUPATION_TYPE_imp = ifelse(!is.na(OCCUPATION_TYPE),OCCUPATION_TYPE %>% as.character(),
-                                      ifelse(is.na(ORGANIZATION_TYPE),"Unemployed","other"))) %>% 
-  mutate(OCCUPATION_TYPE_imp = OCCUPATION_TYPE_imp %>% as.factor())
+  mutate(occupation_type_app_imp = ifelse(!is.na(occupation_type_app),occupation_type_app %>% as.character(),
+                                      ifelse(is.na(organization_type_app),"Unemployed","other"))) %>% 
+  mutate(occupation_type_app_imp = occupation_type_app_imp %>% as.factor())
 ```
 
-### ORGANIZATION_TYPE 
+### organization_type_app 
 
 - 所属=NAはほぼ, 職業=NA (例外は2件のみ)
 - 所属=NA and 職業=NA -> 無職,無所属
 - 所属=NA, 職業=NA -> other
 
 ```{r eval=FALSE}
-app_train %>% select(ORGANIZATION_TYPE,OCCUPATION_TYPE) %>% table(exclude = NULL) 
-#app_train %>% select(ORGANIZATION_TYPE_imp,OCCUPATION_TYPE_imp) %>% table(exclude = NULL) 
+app_train %>% tabyl(organization_type_app,occupation_type_app)
+#app_train %>% select(organization_type_app_imp,occupation_type_app_imp) %>% table(exclude = NULL) 
 ```
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
-                                      ifelse(is.na(OCCUPATION_TYPE),"Unemployed","Other"))) %>% 
-  mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
+  mutate(organization_type_app_imp = ifelse(!is.na(organization_type_app),organization_type_app %>% as.character(),
+                                      ifelse(is.na(occupation_type_app),"Unemployed","Other"))) %>% 
+  mutate(organization_type_app_imp = organization_type_app_imp %>% as.factor())
 
 app_test <- app_test %>% 
-  mutate(ORGANIZATION_TYPE_imp = ifelse(!is.na(ORGANIZATION_TYPE),ORGANIZATION_TYPE %>% as.character(),
-                                      ifelse(is.na(OCCUPATION_TYPE),"Unemployed","other"))) %>% 
-  mutate(ORGANIZATION_TYPE_imp = ORGANIZATION_TYPE_imp %>% as.factor())
+  mutate(organization_type_app_imp = ifelse(!is.na(organization_type_app),organization_type_app %>% as.character(),
+                                      ifelse(is.na(occupation_type_app),"Unemployed","other"))) %>% 
+  mutate(organization_type_app_imp = organization_type_app_imp %>% as.factor())
 ```
 
-### OWN_CAR_AGE
+### own_car_age_app
 
 - 車の年数
 - 車の所持データとほぼ一致(5件: 車保持かつ年数不明があった)
 - 放置
 
 ```{r eval=FALSE}
-app_train %>% select(FLAG_OWN_CAR,OWN_CAR_AGE) %>% table(exclude = NULL) 
+app_train %>% tabyl(flag_own_car_app,own_car_age_app)
 ```
 
-### CNT_FAM_MEMBERS
+### cnt_fam_members_app
 
 - 家族の人数
 - 欠損値は一人と考える
 
 ```{r eval=FALSE}
 # 子どもの人数 / 家族の人数
-app_train %>% select(CNT_CHILDREN,CNT_FAM_MEMBERS) %>% table(exclude = NULL) 
+app_train %>% tabyl(cnt_children_app,cnt_fam_members_app) 
 ```
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
+  mutate(cnt_fam_members_app_imp = ifelse(is.na(cnt_fam_members_app),1,cnt_fam_members_app )) 
 app_test <- app_test %>% 
-  mutate(CNT_FAM_MEMBERS_imp = ifelse(is.na(CNT_FAM_MEMBERS),1,CNT_FAM_MEMBERS )) 
+  mutate(cnt_fam_members_app_imp = ifelse(is.na(cnt_fam_members_app),1,cnt_fam_members_app )) 
 ```
 
-### EXT_SOURCE_??
+### ext_source_{1,2,3}_app
 
 - data list
-    - EXT_SOURCE_1
-    - EXT_SOURCE_2
-    - EXT_SOURCE_3
+    - ext_source_1
+    - ext_source_2
+    - ext_source_3
 
 - 何かの外部データ, 影響が強いので要検証
 - 収入とクレジットを元に, 多重代入法による欠損値補完(error)
 
-
 ```{r eval=FALSE}
 app_train %>% 
-  select(EXT_SOURCE_1,EXT_SOURCE_2,EXT_SOURCE_3,DAYS_BIRTH,DAYS_ID_PUBLISH,OCCUPATION_TYPE) %>% 
+  select(ext_source_1_app,ext_source_2_app,ext_source_3_app,target_app) %>% 
   na.omit() %>% 
   ggpairs(cardinality_threshold=20)
-
-app_train %>% 
-  select(EXT_SOURCE_1,EXT_SOURCE_2) %>% 
-  plot()
 ```
 
-- error 発生する
-
-```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INCOME_TOTAL"), collapse="|"),names(.)))
-data2 <- app_test %>% select_if(grepl(paste(c("EXT_SOURCE","AMT_CREDIT","AMT_INCOME_TOTAL"), collapse="|"),names(.)))
-# str_c(a,collapse = "', '")  
-patterns <- c("EXT_SOURCE_1","EXT_SOURCE_2","EXT_SOURCE_3")
-# 欠損値補完 
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-  
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-### ???_AVG
+### ~_avg_app
 
 - data list
-    - APARTMENTS_AVG
-    - BASEMENTAREA_AVG
-    - YEARS_BEGINEXPLUATATION_AVG
-    - YEARS_BUILD_AVG
-    - COMMONAREA_AVG
-    - ELEVATORS_AVG
-    - ENTRANCES_AVG
-    - FLOORSMAX_AVG
-    - FLOORSMIN_AVG
-    - LANDAREA_AVG
-    - LIVINGAPARTMENTS_AVG
-    - LIVINGAREA_AVG
-    - NONLIVINGAPARTMENTS_AVG
-    - NONLIVINGAREA_AVG
+    - apartments_avg_app
+    - basementarea_avg_app
+    - years_beginexpluatation_avg_app
+    - years_build_avg_app
+    - commonarea_avg_app
+    - elevators_avg_app
+    - entrances_avg_app
+    - floorsmax_avg_app
+    - floorsmin_avg_app
+    - landarea_avg_app
+    - livingapartments_avg_app
+    - livingarea_avg_app
+    - nonlivingapartments_avg_app
+    - nonlivingarea_avg_app
 
 - 住居等に関数正規化された情報
 - 平均項目
@@ -276,52 +248,35 @@ app_test <- cbind(app_test,tmp2)
 
 ```{r eval=FALSE}
 app_train %>% 
-  select_if(grepl("_AVG",names(.))) %>% 
+  select_if(grepl("_avg_",names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   qgraph(edge.labels=T)
 
 app_train %>% 
-  select_if(grepl("_AVG",names(.))) %>% 
+  select_if(grepl("_avg_",names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl("_AVG",names(.)))
-data2 <- app_test %>% select_if(grepl("_AVG",names(.)))
-# str_c(a,collapse = "', '")
-patterns <- c("APARTMENTS_AVG", "BASEMENTAREA_AVG", "YEARS_BEGINEXPLUATATION_AVG", "YEARS_BUILD_AVG", "COMMONAREA_AVG",
-              "ELEVATORS_AVG", "ENTRANCES_AVG", "FLOORSMAX_AVG", "FLOORSMIN_AVG", "LANDAREA_AVG","LIVINGAPARTMENTS_AVG",
-              "LIVINGAREA_AVG", "NONLIVINGAPARTMENTS_AVG", "NONLIVINGAREA_AVG")
-# 欠損値補完
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-### ???_MEDI
+### ~_medi_app
 
 - data list
-    - APARTMENTS_MEDI
-    - BASEMENTAREA_MEDI
-    - YEARS_BEGINEXPLUATATION_MEDI
-    - YEARS_BUILD_MEDI
-    - COMMONAREA_MEDI
-    - ELEVATORS_MEDI
-    - ENTRANCES_MEDI
-    - FLOORSMAX_MEDI
-    - FLOORSMIN_MEDI
-    - LANDAREA_MEDI
-    - LIVINGAPARTMENTS_MEDI
-    - LIVINGAREA_MEDI
-    - NONLIVINGAPARTMENTS_MEDI
-    - NONLIVINGAREA_MEDI
+    - apartments_medi_app
+    - basementarea_medi_app
+    - years_beginexpluatation_medi_app
+    - years_build_medi_app
+    - commonarea_medi_app
+    - elevators_medi_app
+    - entrances_medi_app
+    - floorsmax_medi_app
+    - floorsmin_medi_app
+    - landarea_medi_app
+    - livingapartments_medi_app
+    - livingarea_medi_app
+    - nonlivingapartments_medi_app
+    - nonlivingarea_medi_app
 
 - 住居等に関数正規化された情報
 - 中央値
@@ -330,159 +285,110 @@ app_test <- cbind(app_test,tmp2)
 
 ```{r eval=FALSE}
 app_train %>% 
-  select_if(grepl("_MEDI",names(.))) %>% 
+  select_if(grepl("_medi_",names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   qgraph(edge.labels=T)
 
 app_train %>% 
-  select_if(grepl("_MEDI",names(.))) %>% 
+  select_if(grepl("_medi_",names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
-# data
-data1 <- app_train %>% select_if(grepl("_MEDI",names(.)))
-data2 <- app_test %>% select_if(grepl("_MEDI",names(.)))
-# str_c(a,collapse = "', '")
-patterns <- c("APARTMENTS_MEDI", "BASEMENTAREA_MEDI", "YEARS_BEGINEXPLUATATION_MEDI", "YEARS_BUILD_MEDI", "COMMONAREA_MEDI",
-              "ELEVATORS_MEDI", "ENTRANCES_MEDI", "FLOORSMAX_MEDI", "FLOORSMIN_MEDI", "LANDAREA_MEDI", "LIVINGAPARTMENTS_MEDI",
-              "LIVINGAREA_MEDI", "NONLIVINGAPARTMENTS_MEDI", "NONLIVINGAREA_MEDI")
-# 欠損値補完
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-### ???_MODE
+### ~_mode_app
 
 建物に関する諸情報(標準化済み)
 
 - factor data
-    - FONDKAPREMONT_MODE (カラムがよくわからない)
-    - HOUSETYPE_MODE
-    - WALLSMATERIAL_MODE
-    - TOTALAREA_MODE (敷地面積?)
-    - EMERGENCYSTATE_MODE (No or Yes) -> 欠損値 = NOとする
+    - fondkaprement_mode_app
+    - housetype_mode_app
+    - wallsmaterial_mode_app
+    - totalarea_mode_app
+    - emergencystate_mode_app (No or Yes) -> 欠損値 = NOとする
     
 - numeric data
-    - APARTMENTS_MODE
-    - BASEMENTAREA_MODE
-    - YEARS_BEGINEXPLUATATION_MODE
-    - YEARS_BUILD_MODE
-    - COMMONAREA_MODE
-    - ELEVATORS_MODE
-    - ENTRANCES_MODE
-    - FLOORSMAX_MODE
-    - FLOORSMIN_MODE
-    - LANDAREA_MODE
-    - LIVINGAPARTMENTS_MODE
-    - LIVINGAREA_MODE
-    - NONLIVINGAPARTMENTS_MODE
-    - NONLIVINGAREA_MODE
+    - apartments_mode_app
+    - basementarea_mode_app
+    - years_beginexpluatation_mode_app
+    - years_build_mode_app
+    - commonarea_mode_app
+    - elevators_mode_app
+    - entrances_mode_app
+    - floorsmax_mode_app
+    - floorsmin_mode_app
+    - landarea_mode_app
+    - livingapartments_mode_app
+    - livingarea_mode_app
+    - nonlivingapartments_mode_app
+    - nonlivingarea_mode_app
 
 - numeric: 14項目
 - factor: 5項目
-- EMERGENCYSTATE_MODE 以外保留
 
 #### factor value 
 
 ```{r eval=FALSE}
-app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
-app_train %>% select(FONDKAPREMONT_MODE,WALLSMATERIAL_MODE) %>% table(exclude = NULL) 
-app_train %>% select(HOUSETYPE_MODE,FONDKAPREMONT_MODE) %>% table(exclude = NULL) 
-app_train$TOTALAREA_MODE %>% graphics::hist(breaks = 30)
+app_train %>% tabyl(housetype_mode_app,wallsmaterial_mode_app) 
+app_train %>% tabyl(fondkapremont_mode_app,wallsmaterial_mode_app)  
+app_train %>% tabyl(housetype_mode_app,fondkapremont_mode_app) 
+app_train %>% select(totalarea_mode_app) %>% graphics::hist(breaks = 30)
 
 app_train %>% 
-  select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE) %>% 
+  select(housetype_mode_app,wallsmaterial_mode_app,fondkapremont_mode_app,totalarea_mode_app) %>% 
   na.omit() %>% 
   ggpairs()
 ```
 
 ```{r eval=TRUE}
-# ## impute 1
-# # data
-# data1 <- app_train %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
-# data2 <- app_test %>% select(HOUSETYPE_MODE,WALLSMATERIAL_MODE,FONDKAPREMONT_MODE,TOTALAREA_MODE)
-# patterns <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE") 
-# # 欠損値補完 
-# tmp1 <- ImputeMissingValueRF(data1,patterns)
-# tmp2 <- ImputeMissingValueRF(data2,patterns)
-# # データ結合
-# app_train <- cbind(app_train,tmp1)
-# app_test <- cbind(app_test,tmp2)
-
-## impute 2
+## impute 1
 app_train <- app_train %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
+  mutate(emergencystate_mode_app_imp = ifelse(is.na(emergencystate_mode_app),"No",emergencystate_mode_app %>% as.character())) %>% 
+  mutate(emergencystate_mode_app_imp = emergencystate_mode_app_imp %>% as.factor())
 app_test <- app_test %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = ifelse(is.na(EMERGENCYSTATE_MODE),"No",EMERGENCYSTATE_MODE %>% as.character())) %>% 
-  mutate(EMERGENCYSTATE_MODE_imp = EMERGENCYSTATE_MODE_imp %>% as.factor())
+  mutate(emergencystate_mode_app_imp = ifelse(is.na(emergencystate_mode_app),"No",emergencystate_mode_app %>% as.character())) %>% 
+  mutate(emergencystate_mode_app_imp = emergencystate_mode_app_imp %>% as.factor())
 ```
 
 #### numeric value
 
 ```{r eval=FALSE}
-tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
+# exclude list
+tmp <- c("housetype_mode_app","wallsmaterial_mode_app","fondkapremont_mode_app","totalarea_mode_app","emergencystate_mode_app")
 app_train %>% 
-  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(grepl("_mode_",names(.))) %>% 
   select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   qgraph(edge.labels=T)
 
 app_train %>% 
-  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(grepl("_mode_",names(.))) %>% 
   select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   cor.plot(numbers = TRUE)
 ```
 
-```{r eval=FALSE}
-# exclude
-tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
-# data
-data1 <- app_train %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.)))
-data2 <- app_test %>% select_if(grepl("_MODE",names(.))) %>% select_if(!grepl(paste(tmp, collapse="|"),names(.)))
-# str_c(a,collapse = "', '")
-patterns <- c( "APARTMENTS_MODE", "BASEMENTAREA_MODE", "YEARS_BEGINEXPLUATATION_MODE", "YEARS_BUILD_MODE", "COMMONAREA_MODE",
-               "ELEVATORS_MODE", "ENTRANCES_MODE", "FLOORSMAX_MODE", "FLOORSMIN_MODE", "LANDAREA_MODE", "LIVINGAPARTMENTS_MODE",
-               "LIVINGAREA_MODE", "NONLIVINGAPARTMENTS_MODE", "NONLIVINGAREA_MODE")
-# 欠損値補完
-tmp1 <- ImputeMissingValueMI(data1,patterns)
-tmp2 <- ImputeMissingValueMI(data2,patterns)
-
-# データ結合
-app_train <- cbind(app_train,tmp1)
-app_test <- cbind(app_test,tmp2)
-```
-
-### ????_CIRCLE
+### ~_circle_app
 
 - data list
-    - OBS_30_CNT_SOCIAL_CIRCLE
-    - DEF_30_CNT_SOCIAL_CIRCLE
-    - OBS_60_CNT_SOCIAL_CIRCLE
-    - DEF_60_CNT_SOCIAL_CIRCLE
-
+    - obs_30_cnt_social_circle_app
+    - def_30_cnt_social_circle_app
+    - obs_60_cnt_social_circle_app
+    - def_60_cnt_social_circle_app
 - 観測されていない => 0
 
 ```{r eval=FALSE}
 app_train %>% 
-  select_if(grepl("_CIRCLE",names(.))) %>% 
+  select_if(grepl("_circle_",names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   qgraph(edge.labels=T)
 
 app_train %>% 
-  select_if(grepl("_CIRCLE",names(.))) %>% 
+  select_if(grepl("_circle_",names(.))) %>% 
   na.omit() %>%
   cor() %>% 
   cor.plot(numbers = TRUE)
@@ -490,51 +396,51 @@ app_train %>%
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(OBS_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_60_CNT_SOCIAL_CIRCLE),0,OBS_60_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_60_CNT_SOCIAL_CIRCLE),0,DEF_60_CNT_SOCIAL_CIRCLE )) 
+  mutate(obs_30_cnt_social_circle_app_imp = ifelse(is.na(obs_30_cnt_social_circle_app),0,obs_30_cnt_social_circle_app )) %>% 
+  mutate(def_30_cnt_social_circle_app_imp = ifelse(is.na(def_30_cnt_social_circle_app),0,def_30_cnt_social_circle_app )) %>% 
+  mutate(obs_60_cnt_social_circle_app_imp = ifelse(is.na(obs_60_cnt_social_circle_app),0,obs_60_cnt_social_circle_app )) %>% 
+  mutate(def_60_cnt_social_circle_app_imp = ifelse(is.na(def_60_cnt_social_circle_app),0,def_60_cnt_social_circle_app )) 
 app_test <- app_test %>% 
-  mutate(OBS_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_30_CNT_SOCIAL_CIRCLE),0,OBS_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_30_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_30_CNT_SOCIAL_CIRCLE),0,DEF_30_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(OBS_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(OBS_60_CNT_SOCIAL_CIRCLE),0,OBS_60_CNT_SOCIAL_CIRCLE )) %>% 
-  mutate(DEF_60_CNT_SOCIAL_CIRCLE_imp = ifelse(is.na(DEF_60_CNT_SOCIAL_CIRCLE),0,DEF_60_CNT_SOCIAL_CIRCLE )) 
+  mutate(obs_30_cnt_social_circle_app_imp = ifelse(is.na(obs_30_cnt_social_circle_app),0,obs_30_cnt_social_circle_app )) %>% 
+  mutate(def_30_cnt_social_circle_app_imp = ifelse(is.na(def_30_cnt_social_circle_app),0,def_30_cnt_social_circle_app )) %>% 
+  mutate(obs_60_cnt_social_circle_app_imp = ifelse(is.na(obs_60_cnt_social_circle_app),0,obs_60_cnt_social_circle_app )) %>% 
+  mutate(def_60_cnt_social_circle_app_imp = ifelse(is.na(def_60_cnt_social_circle_app),0,def_60_cnt_social_circle_app )) 
 ```
 
-### DAYS_LAST_PHONE_CHANGE
+### days_last_phone_change_app
 
 - 欠損値一人
 - 保留
 
 ```{r eval=FALSE}
-app_train %>% select(DAYS_LAST_PHONE_CHANGE) %>% table(exclude = NULL) 
+app_train %>% tabyl(days_last_phone_change_app)
 ```
 
-### AMT_???
+### amt_~
 
 #### part1 
 
 - data list
-    - AMT_INCOME_TOTAL: 総収入
-    - AMT_CREDIT: ローンのクレジット額
-    - AMT_ANNUITY: 年金ローン
-    - AMT_GOODS_PRICE: 消費者ローン
+    - amt_income_total_app: 総収入
+    - amt_credit_app: ローンのクレジット額
+    - amt_annuity_app: 年金ローン
+    - amt_goods_price_app: 消費者ローン
 
 - 3つのローンの相関関係強い, 欠損値補完に使える！！
 
 ```{r eval=FALSE}
-app_train %>% 
-  select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) %>% 
+app_train %>%
+  select(amt_income_total_app,amt_credit_app,amt_annuity_app,amt_goods_price_app)
   na.omit() %>% 
   ggpairs()
 ```
 
 ```{r eval=TRUE}
 # 補完に使用するデータ
-data1 <- app_train %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
-data2 <- app_test %>% select(AMT_CREDIT, AMT_ANNUITY, AMT_GOODS_PRICE) 
+data1 <- app_train %>% select(amt_credit_app,amt_annuity_app,amt_goods_price_app) 
+data2 <- app_test %>% select(amt_credit_app,amt_annuity_app,amt_goods_price_app) 
 # 欠損値を含むデータ
-patterns <- c("AMT_ANNUITY","AMT_GOODS_PRICE")
+patterns <- c("amt_annuity_app","amt_goods_price_app")
 
 # 欠損値補完 (1 iter : 2000 second)
 tmp1 <- ImputeMissingValueMI(data1,patterns)
@@ -548,27 +454,27 @@ app_test <- cbind(app_test,tmp2)
 #### part2
 
 - data list
-    - AMT_REQ_CREDIT_BUREAU_HOUR
-    - AMT_REQ_CREDIT_BUREAU_DAY
-    - AMT_REQ_CREDIT_BUREAU_WEEK
-    - AMT_REQ_CREDIT_BUREAU_MON
-    - AMT_REQ_CREDIT_BUREAU_QRT
-    - AMT_REQ_CREDIT_BUREAU_YEAR
+    - amt_req_credit_bureau_hour_app
+    - amt_req_credit_bureau_day_app
+    - amt_req_credit_bureau_week_app
+    - amt_req_credit_bureau_mon_app
+    - amt_req_credit_bureau_qrt_app
+    - amt_req_credit_bureau_year_app
 
 - 何かの紹介件数 NA-> 0補完
 - 関係性低い
 
 ```{r eval=FALSE}
 app_train %>% 
-  select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
-         AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
+  select(amt_req_credit_bureau_hour_app, amt_req_credit_bureau_day_app, amt_req_credit_bureau_week_app,
+         amt_req_credit_bureau_mon_app, amt_req_credit_bureau_qrt_app, amt_req_credit_bureau_year_app) %>% 
   na.omit() %>%
   cor() %>% 
   qgraph(edge.labels=T)
 
 app_train %>% 
-  select(AMT_REQ_CREDIT_BUREAU_HOUR, AMT_REQ_CREDIT_BUREAU_DAY, AMT_REQ_CREDIT_BUREAU_WEEK,
-         AMT_REQ_CREDIT_BUREAU_MON, AMT_REQ_CREDIT_BUREAU_QRT, AMT_REQ_CREDIT_BUREAU_YEAR) %>% 
+  select(amt_req_credit_bureau_hour_app, amt_req_credit_bureau_day_app, amt_req_credit_bureau_week_app,
+         amt_req_credit_bureau_mon_app, amt_req_credit_bureau_qrt_app, amt_req_credit_bureau_year_app) %>% 
   na.omit() %>%
   cor() %>% 
   cor.plot(numbers = TRUE)
@@ -576,27 +482,27 @@ app_train %>%
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_WEEK_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_WEEK),0,AMT_REQ_CREDIT_BUREAU_WEEK)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_MON_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_MON),0,AMT_REQ_CREDIT_BUREAU_MON)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_QRT_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_QRT),0,AMT_REQ_CREDIT_BUREAU_QRT)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
+  mutate(amt_req_credit_bureau_hour_app_imp = ifelse(is.na(amt_req_credit_bureau_hour_app),0,amt_req_credit_bureau_hour_app)) %>% 
+  mutate(amt_req_credit_bureau_day_app_imp = ifelse(is.na(amt_req_credit_bureau_day_app),0,amt_req_credit_bureau_day_app)) %>% 
+  mutate(amt_req_credit_bureau_week_app_imp = ifelse(is.na(amt_req_credit_bureau_week_app),0,amt_req_credit_bureau_week_app)) %>% 
+  mutate(amt_req_credit_bureau_mon_app_imp = ifelse(is.na(amt_req_credit_bureau_mon_app),0,amt_req_credit_bureau_mon_app)) %>% 
+  mutate(amt_req_credit_bureau_qrt_app_imp = ifelse(is.na(amt_req_credit_bureau_qrt_app),0,amt_req_credit_bureau_qrt_app)) %>% 
+  mutate(amt_req_credit_bureau_year_app_imp = ifelse(is.na(amt_req_credit_bureau_year_app),0,amt_req_credit_bureau_year_app)) 
 
 app_test <- app_test %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_HOUR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_HOUR),0,AMT_REQ_CREDIT_BUREAU_HOUR)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_DAY_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_DAY),0,AMT_REQ_CREDIT_BUREAU_DAY)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_WEEK_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_WEEK),0,AMT_REQ_CREDIT_BUREAU_WEEK)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_MON_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_MON),0,AMT_REQ_CREDIT_BUREAU_MON)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_QRT_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_QRT),0,AMT_REQ_CREDIT_BUREAU_QRT)) %>% 
-  mutate(AMT_REQ_CREDIT_BUREAU_YEAR_imp = ifelse(is.na(AMT_REQ_CREDIT_BUREAU_YEAR),0,AMT_REQ_CREDIT_BUREAU_YEAR)) 
+  mutate(amt_req_credit_bureau_hour_app_imp = ifelse(is.na(amt_req_credit_bureau_hour_app),0,amt_req_credit_bureau_hour_app)) %>% 
+  mutate(amt_req_credit_bureau_day_app_imp = ifelse(is.na(amt_req_credit_bureau_day_app),0,amt_req_credit_bureau_day_app)) %>% 
+  mutate(amt_req_credit_bureau_week_app_imp = ifelse(is.na(amt_req_credit_bureau_week_app),0,amt_req_credit_bureau_week_app)) %>% 
+  mutate(amt_req_credit_bureau_mon_app_imp = ifelse(is.na(amt_req_credit_bureau_mon_app),0,amt_req_credit_bureau_mon_app)) %>% 
+  mutate(amt_req_credit_bureau_qrt_app_imp = ifelse(is.na(amt_req_credit_bureau_qrt_app),0,amt_req_credit_bureau_qrt_app)) %>% 
+  mutate(amt_req_credit_bureau_year_app_imp = ifelse(is.na(amt_req_credit_bureau_year_app),0,amt_req_credit_bureau_year_app)) 
 ```
 
 ## add new column{.tabset .tabset-fade .tabset-pills}
 
-- 新しい特徴量を作成する
+- Add `_add` to the made new column
 
-### AMT
+### 
 
 ```{r}
 app_train <- app_train %>% 
@@ -606,14 +512,14 @@ app_train <- app_train %>%
          INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
          EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
          OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
-         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS,
+         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / cnt_fam_members_app,
          OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
-         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / CNT_FAM_MEMBERS,
+         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / cnt_fam_members_app,
          PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
          PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
          CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
-         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / CNT_FAM_MEMBERS,
-         CNT_NON_CHILD_add = CNT_FAM_MEMBERS - CNT_CHILDREN,
+         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / cnt_fam_members_app,
+         CNT_NON_CHILD_add = cnt_fam_members_app - CNT_CHILDREN,
          INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
          CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
          )
@@ -624,64 +530,64 @@ app_test <- app_test %>%
          INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
          EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
          OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
-         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / CNT_FAM_MEMBERS,
+         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / cnt_fam_members_app,
          OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
-         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / CNT_FAM_MEMBERS,
+         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / cnt_fam_members_app,
          PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
          PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
          CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
-         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / CNT_FAM_MEMBERS,
-         CNT_NON_CHILD_add = CNT_FAM_MEMBERS - CNT_CHILDREN,
+         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / cnt_fam_members_app,
+         CNT_NON_CHILD_add = cnt_fam_members_app - CNT_CHILDREN,
          INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
          CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
          )
 ```
 
-### EXT_SOURCE_??
+### ext_source_{1,2,3}_app
 
 - data list
-    - EXT_SOURCE_1
-    - EXT_SOURCE_2
-    - EXT_SOURCE_3
+    - ext_source_1_app
+    - ext_source_2_app
+    - ext_source_3_app
 
 - 全てNAのものは172個
 - 合計値と乗算値
 
 ```{r eval=FALSE}
 app_train %>% 
-  filter(EXT_SOURCE_1 %>% is.na()) %>% 
-  filter(EXT_SOURCE_2 %>% is.na()) %>% 
-  filter(EXT_SOURCE_3 %>% is.na()) %>% 
-  select(TARGET) %>% table()
+  filter(ext_source_1_app %>% is.na()) %>% 
+  filter(ext_source_2_app %>% is.na()) %>% 
+  filter(ext_source_3_app %>% is.na()) %>% 
+  tabyl(target_app)
 ```
 
 ```{r eval=TRUE}
 app_train <- app_train %>% 
-  mutate(tmp1 = EXT_SOURCE_1,tmp2 = EXT_SOURCE_2,tmp3 = EXT_SOURCE_3) %>% 
+  mutate(tmp1 = ext_source_1_app,tmp2 = ext_source_2_app,tmp3 = ext_source_3_app) %>% 
   mutate_at(vars(matches("tmp",.)), funs(ifelse(is.na(.),0,.))) %>% 
-  mutate(EXT_SOURCE_SUM_add = round(tmp1 + tmp2 + tmp3, digits = 4)) %>% 
-  mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3, digits = 4)) %>%
-  mutate(EXT_SOURCE_MEAN_add = round(mean(c(tmp1,tmp2,tmp3),na.rm=TRUE),digits = 4)) %>% 
+  mutate(ext_source_sum_add = round(tmp1 + tmp2 + tmp3, digits = 4)) %>% 
+  mutate(ext_source_multi_add = round(tmp1 * tmp2 * tmp3, digits = 4)) %>%
+  mutate(ext_source_mean_add = round(mean(c(tmp1,tmp2,tmp3),na.rm=TRUE),digits = 4)) %>% 
   select(-c(tmp1,tmp2,tmp3))
 
 app_test <- app_test %>% 
-  mutate(tmp1 = EXT_SOURCE_1,tmp2 = EXT_SOURCE_2,tmp3 = EXT_SOURCE_3) %>% 
+  mutate(tmp1 = ext_source_1_app,tmp2 = ext_source_2_app,tmp3 = ext_source_3_app) %>% 
   mutate_at(vars(matches("tmp",.)), funs(ifelse(is.na(.),0,.))) %>% 
-  mutate(EXT_SOURCE_SUM_add = round(tmp1 + tmp2 + tmp3,digits = 4)) %>% 
-  mutate(EXT_SOURCE_MULTI_add = round(tmp1 * tmp2 * tmp3,digits = 4)) %>% 
-  mutate(EXT_SOURCE_MEAN_add = round(mean(c(tmp1,tmp2,tmp3),na.rm=TRUE),digits = 4)) %>% 
+  mutate(ext_source_sum_add = round(tmp1 + tmp2 + tmp3, digits = 4)) %>% 
+  mutate(ext_source_multi_add = round(tmp1 * tmp2 * tmp3, digits = 4)) %>%
+  mutate(ext_source_mean_add = round(mean(c(tmp1,tmp2,tmp3),na.rm=TRUE),digits = 4)) %>% 
   select(-c(tmp1,tmp2,tmp3))
 ```
 
 ```{r eval=FALSE}
-patterns <- c("EXT_TSNE_1", "EXT_TSNE_2")
+patterns <- c("ext_source_tsne_1_app","ext_source_tsne_2_app")
 # make new column
 tmp1 <- app_train %>% 
-  select_if(grepl("EXT_SOURCE",names(.))) %>% 
+  select_if(grepl("ext_source",names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 tmp2 <- app_test %>% 
-  select_if(grepl("EXT_SOURCE",names(.))) %>% 
+  select_if(grepl("ext_source",names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 # combine data
@@ -689,19 +595,19 @@ app_train <- cbind(app_train,tmp1)
 app_test <- cbind(app_test,tmp2)
 ```
 
-### AVG
+### avg
 
 - 欠損値に0を代入してRtsneを実行
 
 ```{r}
-patterns <- c("AVG_TSNE_1", "AVG_TSNE_2")
+patterns <- c("avg_tsne_1_app", "avg_tsne_2_app")
 # make new column
 tmp1 <- app_train %>% 
-  select_if(grepl("_AVG",names(.))) %>% 
+  select_if(grepl("_avg_",names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 tmp2 <- app_test %>% 
-  select_if(grepl("_AVG",names(.))) %>% 
+  select_if(grepl("_avg_",names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 # combine data
@@ -709,24 +615,25 @@ app_train <- cbind(app_train,tmp1)
 app_test <- cbind(app_test,tmp2)
 ```
 
-### MODE
+### mode
 
 - 欠損値に0を代入してRtsneを実行
 
 ```{r}
 # exclude
-tmp <- c("HOUSETYPE_MODE","WALLSMATERIAL_MODE","FONDKAPREMONT_MODE","TOTALAREA_MODE","EMERGENCYSTATE_MODE")
+tmp <- c("housetype_mode_app","wallsmaterial_mode_app","fondkapremont_mode_app","totalarea_mode_app","emergencystate_mode_app")
+
 # list
-patterns <- c( "MODE_TSNE_1", "MODE_TSNE_2")
+patterns <- c( "mode_tsne_1_app", "mode_tsne_2_app")
 
 tmp1 <- app_train %>% 
-  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(grepl("_mode",names(.))) %>% 
   select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 
 tmp2 <- app_test %>% 
-  select_if(grepl("_MODE",names(.))) %>% 
+  select_if(grepl("_mode",names(.))) %>% 
   select_if(!grepl(paste(tmp, collapse="|"),names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
@@ -736,22 +643,22 @@ app_train <- cbind(app_train,tmp1)
 app_test <- cbind(app_test,tmp2)
 ```
 
-### MEDI
+### medi
 
 - 欠損値に0を代入してRtsneを実行
 
 ```{r}
 # list
-patterns <- c("MEDI_TSNE_1", "MEDI_TSNE_2")
+patterns <- c("medi_tsne_1_app", "medi_tsne_2_app")
 
 # data
 tmp1 <- app_train %>% 
-  select_if(grepl("_MEDI",names(.))) %>% 
+  select_if(grepl("_medi_",names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 
 tmp2 <- app_test %>%
-  select_if(grepl("_MEDI",names(.))) %>% 
+  select_if(grepl("_medi_",names(.))) %>% 
   mutate_all(funs(ifelse(is.na(.),0,.))) %>% 
   ImputeMissingValueTSNE(patterns)
 
@@ -762,10 +669,15 @@ app_test <- cbind(app_test,tmp2)
 
 ## output for csv
 
-- Save the csv files in the csv_imp folder
+- Save the csv files in the `input/csv_imp1`
+- Convert charcter's columns into factor's columns 
 
 ```{r eval=TRUE}
-write_csv(app_train,"~/Desktop/Home_Credit_Kaggle/csv_imp/application_train_imp.csv")
-write_csv(app_test,"~/Desktop/Home_Credit_Kaggle/csv_imp/application_test_imp.csv")
+app_train %>% 
+  mutate_if(is.factor, funs(as.numeric)) %>% 
+  write_csv("~/Desktop/Home_Credit_Kaggle/input/csv_imp1/application_train_imp.csv")
+app_test %>% 
+  mutate_if(is.factor, funs(as.numeric)) %>% 
+  write_csv("~/Desktop/Home_Credit_Kaggle/input/csv_imp1/application_test_imp.csv")
 ```
 
