@@ -96,8 +96,7 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 │   ├── 1_Preprocess_pos_cash.Rmd
 │   ├── 1_Preprocess_pre_app.Rmd
 │   ├── 2_Combine.Rmd
-│   ├── 3_XGBoost.Rmd
-│   └── EDA.html
+│   └── 3_XGBoost.Rmd
 ├── input
 │   ├── csv
 │   │   ├── HomeCredit_columns_description.csv
