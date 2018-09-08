@@ -16,6 +16,8 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+![flowchart](https://github.com/Home_Credit_Kaggle/data/FlowChart.eddx)
+
 # Home_Credit_Kaggle
 
 ## Rmd.file
