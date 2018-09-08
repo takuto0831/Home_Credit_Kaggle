@@ -18,8 +18,8 @@
 
 # Flow Chart
 
-<img src="data/FlowChart.png" width="300px">
-<img src="data/FlowChart.png" width="400px">
+<img src="data/FlowChart.png" width="1000px">
+<img src="data/FlowChart.png" width="1200px">
 
 # Home_Credit_Kaggle
 
