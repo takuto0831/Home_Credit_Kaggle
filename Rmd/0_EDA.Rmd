@@ -1,5 +1,5 @@
 ---
-title: "Home Credit Dafault Risk (EDA)"
+title: "Home Credit Dafault Risk: EDA"
 author: "kotsubo takuto"
 output: 
     html_document:
@@ -8,34 +8,8 @@ output:
       toc_depth: 3
       code_folding: hide
 ---
-
-# Toc
-
-- About Competition
-    - Overview
-    - Data description
-- Set up
-    - knitr options
-    - library package
-    - load function
-    - import csv 
-        - Import raw data from `csv/~.csv`
-        - Define missing values: na = c("XNA","NA","","NaN","?",...)
-        - Convert charcter's columns into factor's columns 
-        - Delete duplicate column names and change them to lower case
-        - Add keyword to all column names for each data: (_app,_bureau,_pre,_pos,_ins,_cre)
-    - export csv
-        - Export modified data to `csv_imp0/~.csv`
-- EDA
-    - Check the data to confirm outliers and missing data 
-    - Confirm relationship with target variables
-    - Apply glimpse, skimr and dfsummary to the all data
-- Kernel sample
-    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
-    - [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
-    - [missing value pattern](https://www.kaggle.com/jpmiller/patterns-of-missing-data)
     
-# Home Credit Default Risk
+# About the competition
 
 ## Overview
 
@@ -71,6 +45,12 @@ output:
     - Key variable: SK_ID_CURR, SK_ID_PREV
     - About: 各月毎のクレジットカード履歴,月次バランス
     
+## Kernel sample
+
+- [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
+- [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
+- [missing value pattern](https://www.kaggle.com/jpmiller/patterns-of-missing-data)
+
 # Setting{.tabset .tabset-fade .tabset-pills}
 
 ## knitr option
@@ -115,6 +95,12 @@ source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
 ```
 
 ## Import csv
+
+- Import raw data from `csv/~.csv`
+- Define missing values: na = c("XNA","NA","","NaN","?",...)
+- Convert charcter's columns into factor's columns 
+- Delete duplicate column names and change them to lower case
+- Add keyword to all column names for each data: (_app,_bureau,_pre,_pos,_ins,_cre)
 
 ```{r cache=TRUE}
 # 訓練データ, テストデータ
@@ -162,6 +148,7 @@ credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/credit_card_bala
 
 ## Export csv
 
+- Export modified data to `csv_imp0/~.csv`
 - not exeute
 
 ```{r eval=FALSE}
@@ -177,6 +164,10 @@ write_csv(previous_app, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/previous_ap
 
 # Explatory data analysis
 
+- Check the data to confirm outliers and missing data 
+- Confirm relationship with target variables
+- Apply glimpse, skimr and dfsummary to the all data
+    
 ## Check missing values and outiers valules {.tabset .tabset-fade .tabset-pills}
 
 ### app_train
