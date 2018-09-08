@@ -9,6 +9,32 @@ output:
       code_folding: hide
 ---
 
+# Toc
+
+- About Competition
+    - Overview
+    - Data description
+- Set up
+    - knitr options
+    - library package
+    - load function
+    - import csv 
+        - Import raw data from `csv/~.csv`
+        - Define missing values: na = c("XNA","NA","","NaN","?",...)
+        - Convert charcter's columns into factor's columns 
+        - Delete duplicate column names and change them to lower case
+        - Add keyword to all column names for each data: (_app,_bureau,_pre,_pos,_ins,_cre)
+    - export csv
+        - Export modified data to `csv_imp0/~.csv`
+- EDA
+    - Check the data to confirm outliers and missing data 
+    - Confirm relationship with target variables
+    - Apply glimpse, skimr and dfsummary to the all data
+- Kernel sample
+    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
+    - [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
+    - [missing value pattern](https://www.kaggle.com/jpmiller/patterns-of-missing-data)
+    
 # Home Credit Default Risk
 
 ## Overview
@@ -44,32 +70,6 @@ output:
 - credit_card_balance.csv (23 variavbles)
     - Key variable: SK_ID_CURR, SK_ID_PREV
     - About: 各月毎のクレジットカード履歴,月次バランス
-
-## Toc
-
-- About Competition
-    - overview
-    - data description
-- Set up
-    - library package
-    - load function
-    - read csv 
-        - unified missing value (NA)
-        - charcter type -> factor type  
-- Preprocessing
-    - convert to factor type of binary variable ( not need )
-    - impute missing value and add column (important !!!)
-    - make new feature value 
-    - combine all tables
-- EDA
-    - データ内の課題発見
-    - データの特性発見
-    - 重要なカラムの選択
-    - 特徴量抽出
-- Kernel sample
-    - [xgboost](http://rtokei.tech/machine-learning/機械学習アルゴリズム〜xgboost〜/)
-    - [xgboust use all columns](https://www.kaggle.com/kailex/tidy-xgb-all-tables-0-796)
-    - [missing value pattern](https://www.kaggle.com/jpmiller/patterns-of-missing-data)
     
 # Setting{.tabset .tabset-fade .tabset-pills}
 
@@ -99,21 +99,13 @@ opts_knit$set(width=75)
 
 ## Library package
 
-- 必要なパッケージを適宜追加
-
 ```{r package, message=FALSE}
 library(tidyverse)
 library(readr) # for csv
 library(summarytools) # summary easily for EDA
 library(GGally) # ggpairs
 library(skimr) 
-library(missForest)
-library(imputeMissings)
-library(mi)
-library(doParallel)
-library(qgraph)
-library(psych)
-library(fastcluster)
+library(janitor)
 ```
 
 ## Load funciton
@@ -122,50 +114,68 @@ library(fastcluster)
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
 ```
 
-## read csv{.tabset .tabset-fade .tabset-pills}
-
-- Missing value
-na = c("XNA","NA","","NaN","?"): 以下の設定で naを計上する. (application_train のfactor列は確認済み)
-
-- convert charcter type into factor type
+## Import csv
 
 ```{r}
 # 訓練データ, テストデータ
-app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
-    mutate_if(is.character, funs(factor(.)))
-app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
+app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_app",sep="")) 
+app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_app",sep="")) 
 
 # クレジット利用履歴 (by Credit Bureau)
-bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
+bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_bureau",sep="")) 
+bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_bureau",sep="")) 
 
 # 過去の利用データ
-previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
-credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.)))
+previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_pre",sep="")) 
+install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_ins",sep="")) 
+
+pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_pos",sep="")) 
+credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names() %>% # change small letters
+  rename_all(. %>% tolower %>% str_c("_cre",sep="")) 
 
 # submit style file
-# sample_submission <- read_csv("~/Desktop/Home_Credit_Kaggle/csv/sample_submission.csv")
+# sample_submission <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/sample_submission.csv")
+```
+
+## Export csv
+
+```{r eval=FALSE}
+write_csv(app_train, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_train.csv")
+write_csv(app_test, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_test.csv")
+write_csv(bureau, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/bureau.csv")
+write_csv(bureau_balance, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/bureau_balance.csv")
+write_csv(credit_card, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/credit_card_balance.csv")
+write_csv(install_pay, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/installments_payments.csv")
+write_csv(pos_cash, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/POS_CASH_balance.csv")
+write_csv(previous_app, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/previous_application.csv")
 ```
 
 # Explatory data analysis
 
-- 基礎集計
-- 欠損値の確認
-- uniqueな値の確認
-- Dendrogram
-
-## Check Missing value{.tabset .tabset-fade .tabset-pills}
-
-- 全ての欠損値をNAに置き換えられているか確認する(factor value)
+## Check missing values and outiers valules {.tabset .tabset-fade .tabset-pills}
 
 ### app_train
 
@@ -213,6 +223,59 @@ CheckMissingValue(pos_cash)
 
 ```{r}
 CheckMissingValue(credit_card)
+```
+
+## Relationship with target values
+
+```{r}
+app_train %>% 
+  tabyl(name_contract_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(code_gender_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(flag_own_car_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(flag_own_realty_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_type_suite_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_income_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_education_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_family_status_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_housing_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(occupation_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(weekday_appr_process_start_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(organization_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(fondkapremont_mode_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(housetype_mode_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(wallsmaterial_mode_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(emergencystate_mode_app,target_app) %>% 
+  adorn_percentages("row")
 ```
 
 ## glimpse package{.tabset .tabset-fade .tabset-pills}
@@ -270,7 +333,6 @@ glimpse(credit_card)
 ## skim package{.tabset .tabset-fade .tabset-pills}
 
 - overview of a data frame
-- so good ??? [knitr::kable(skimr::skim_to_wide(iris))]
 
 ### app_train
 
@@ -371,64 +433,3 @@ dfSummarySplit(pos_cash)
 ```{r}
 dfSummarySplit(credit_card)
 ```
-
-## Dendrogram
-
-- 可視化できない
-- 保留
-
-```{r, eval=FALSE}
-#hc <- fastcluster::hclust(dist(app_train[1:10000,]))
-#a <- as.dendrogram(hc)
-par(mar = c(3,3,3,7))
-plot(a, horiz =  TRUE,  nodePar = list(cex = .007))
-```
-
-## Check users
-
-- TARGET=1となる値の確認
-- あまり関係見られない??
-
-```{r}
-app_train %>% 
-  filter(TARGET == 1) %>% 
-  select(FLAG_OWN_CAR)  %>% 
-  table()
-app_train %>% 
-  filter(TARGET == 1) %>% 
-  select(FLAG_OWN_REALTY)  %>% 
-  table()
-app_train %>% 
-  filter(TARGET == 1) %>% 
-  select(EMERGENCYSTATE_MODE)  %>% 
-  table()
-app_train %>% 
-  filter(TARGET == 1) %>% 
-  select(FLAG_EMP_PHONE)  %>% 
-  table()
-app_train %>% 
-  filter(TARGET == 1) %>% 
-  select(FLAG_WORK_PHONE)  %>% 
-  table()
-app_train %>% 
-  filter(TARGET == 1) %>% 
-  select(FLAG_PHONE)  %>% 
-  table()
-```
-
-## Relational plot
-
-- 保留
-
-```{r eval=FALSE}
-application_train %>% 
-  select(FLAG_OWN_CAR,FLAG_OWN_REALTY,FLAG_CONT_MOBILE) %>% 
-  ggpairs(upper = list(continuous = wrap("cor", size = 5)),                    
-          lower = list(continuous = "smooth"))
-
-application_train %>% 
-  select(AMT_INCOME_TOTAL,AMT_CREDIT,AMT_ANNUITY,AMT_GOODS_PRICE) %>% 
-  ggpairs(upper = list(continuous = wrap("cor", size = 10)),                    
-          lower = list(continuous = "smooth"))
-```
-
