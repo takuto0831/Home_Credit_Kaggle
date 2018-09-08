@@ -19,9 +19,9 @@ CheckMissingValue <- function(data){
   # Extract numeric column
   col_ <- data %>% select_if(is.factor %>% negate()) %>% colnames() 
   print("Check factor type value")
-  for (i in 1:length(col)) data %>% tabyl(col[i]) %>% print()
+  if(length(col)>=1) for (i in 1:length(col)) data %>% tabyl(col[i]) %>% print()
   print("Check numeric type value")
-  for (i in 1:length(col_)) data %>% tabyl(col_[i]) %>% DT::datatable() %>% print()
+  if(length(col_)>=1) for (i in 1:length(col_)) data %>% tabyl(col_[i]) %>% DT::datatable() %>% print()
 }
 
 # dfSummarySplit
