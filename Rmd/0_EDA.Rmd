@@ -88,7 +88,7 @@ options(max.print="200", digits=5)
 # Global options
 library(knitr)
 opts_chunk$set(echo=TRUE,
-               cache = TRUE,
+               # cache = FALSE,
 	             prompt=FALSE,
                tidy=TRUE,
                comment=NA,
@@ -110,13 +110,13 @@ library(janitor)
 
 ## Load funciton
 
-```{r cache=FALSE}
+```{r}
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
 ```
 
 ## Import csv
 
-```{r}
+```{r cache=TRUE}
 # 訓練データ, テストデータ
 app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
@@ -162,6 +162,8 @@ credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/credit_card_bala
 
 ## Export csv
 
+- not exeute
+
 ```{r eval=FALSE}
 write_csv(app_train, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_train.csv")
 write_csv(app_test, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_test.csv")
@@ -179,49 +181,49 @@ write_csv(previous_app, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/previous_ap
 
 ### app_train
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(app_train)
 ```
 
 ### app_test
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(app_test)
 ```
 
 ### bureau
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(bureau)
 ```
 
 ### bureau_balance
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(bureau_balance)
 ```
 
 ### previous_app
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(previous_app)
 ```
 
 ### install_pay
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(install_pay)
 ```
 
 ### pos_cash
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(pos_cash)
 ```
 
 ### credit_card
 
-```{r}
+```{r cache=TRUE}
 CheckMissingValue(credit_card)
 ```
 
@@ -284,49 +286,49 @@ app_train %>%
 
 ### app_train
 
-```{r}
+```{r cache=TRUE}
 glimpse(app_train)
 ```
 
 ### app_test
 
-```{r}
+```{r cache=TRUE}
 glimpse(app_test)
 ```
 
 ### bureau
 
-```{r}
+```{r cache=TRUE}
 glimpse(bureau)
 ```
 
 ### bureau_balance
 
-```{r}
+```{r cache=TRUE}
 glimpse(bureau_balance)
 ```
 
 ### previous_app
 
-```{r}
+```{r cache=TRUE}
 glimpse(previous_app)
 ```
 
 ### install_pay
 
-```{r}
+```{r cache=TRUE}
 glimpse(install_pay)
 ```
 
 ### pos_cash
 
-```{r}
+```{r cache=TRUE}
 glimpse(pos_cash)
 ```
 
 ### credit_card
 
-```{r}
+```{r cache=TRUE}
 glimpse(credit_card)
 ```
 
@@ -336,49 +338,49 @@ glimpse(credit_card)
 
 ### app_train
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(app_train) %>% kable()
 ```
 
 ### app_test
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(app_test) %>% kable()
 ```
 
 ### bureau
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(bureau) %>% kable()
 ```
 
 ### bureau_balance
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(bureau_balance) %>% kable()
 ```
 
 ### previous_app
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(previous_app) %>% kable()
 ```
 
 ### install_pay
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(install_pay) %>% kable()
 ```
 
 ### pos_cash
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(pos_cash) %>% kable()
 ```
 
 ### credit_card
 
-```{r}
+```{r cache=TRUE}
 skimr::skim_to_wide(credit_card) %>% kable()
 ```
 
@@ -388,48 +390,48 @@ skimr::skim_to_wide(credit_card) %>% kable()
 
 ### app_train
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(app_train)
 ```
 
 ### app_test
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(app_test)
 ```
 
 ### bureau
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(bureau)
 ```
 
 ### bureau_balance
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(bureau_balance)
 ```
 
 ### previous_app
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(previous_app)
 ```
 
 ### install_pay
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(install_pay)
 ```
 
 ### pos_cash
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(pos_cash)
 ```
 
 ### credit_card
 
-```{r}
+```{r cache=TRUE}
 dfSummarySplit(credit_card)
 ```
