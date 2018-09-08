@@ -9,7 +9,6 @@
   - [py.file](#pyfile)
   - [script.file](#scriptfile)
   - [submit.file](#submitfile)
-  - [about_column.numbers](#about_columnnumbers)
   - [csv.file](#csvfile)
   - [csv_imp.file](#csv_impfile)
   - [data.file](#datafile)
@@ -53,29 +52,31 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 - ファイル名: [file_name] + [submit_date].csv
 - (file_name: データの詳細な構造, submit_data: 作成日)
 
-## about_column.numbers
-
-- csv dataの各カラムの説明, およびメモ
-- ROW name and memo (青色): 欠損値かつ無処理
-- ROW name (青色): 欠損値かつ処理したカラムを追加済み
-
 ## csv.file
 
-- 配布された元データ
+- raw data
 
-## csv_imp.file
+## csv_imp0.file
+
+- Flow Chart における Process1による結果
+
+## csv_imp1.file
 
 - 日付付きでboxに保存してある
-- 欠損処理等を実行したデータ(~_imp.csv)
+- 欠損処理, 特徴量抽出を実行したデータ(~_imp.csv)
 - 全てのテーブルを結合したデータ(all_data_train.csv,all_data_test,csv)
 
 ## data.file
 
 - xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
-- 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para.tsv)
+- 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para_old_100.tsv)
 - train auc, test auc, LB score 等をメモ形式で保存(score_sheet.tsv)
 - Flowchart作成図(Flowchart.eddx, FlowChart.png)
-
+- about_column.numbers
+    - csv dataの各カラムの説明, およびメモ
+    - ROW name and memo (青色): 欠損値かつ無処理
+    - ROW name (青色): 欠損値かつ処理したカラムを追加済み
+    
 # Layered Directory
  
 ```
