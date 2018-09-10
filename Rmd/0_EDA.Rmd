@@ -463,9 +463,7 @@ CheckColumnsNotInclude(previous_app,patterns)
 
 ## Make a simple combine data{.tabset .tabset-fade .tabset-pills}
 
-- Make a all_{train|test}.csv
 - Export modified data to `csv_imp0/all_{train|test}.csv`
-- Apply skimr and dfsummary to the all data
 
 ### Make a combine data
 
@@ -489,13 +487,13 @@ previous_app_sum <- makedummies(previous_app,basal_level = TRUE) %>% # make dumm
   select(-sk_id_prev) %>% 
   SummarizeFunc(group = "sk_id_curr")
 
-all_data_train <- app_train %>% 
+all_data_train <- (app_train %>% mutate_if(is.factor, funs(as.numeric))) %>% # factor -> numeric
   left_join(bureau_sum,by="sk_id_curr") %>% 
   left_join(credit_card_sum,by = "sk_id_curr") %>% 
   left_join(install_pay_sum,by = "sk_id_curr") %>% 
   left_join(pos_cash_sum,by = "sk_id_curr") %>% 
   left_join(previous_app_sum,by = "sk_id_curr")
-all_data_test <- app_test %>% 
+all_data_test <- (app_test %>% mutate_if(is.factor, funs(as.numeric))) %>% # factor -> numeric
   left_join(bureau_sum,by="sk_id_curr") %>% 
   left_join(credit_card_sum,by = "sk_id_curr") %>% 
   left_join(install_pay_sum,by = "sk_id_curr") %>% 
