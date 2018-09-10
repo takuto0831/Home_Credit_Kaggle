@@ -62,13 +62,13 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 
 ### csv_imp0.file
 
-- Flow Chart における Process1による結果
+- ~.csv: 基本的な前処理を適用
+- all_{train|test}.csv: シンプルに全データを結合
 
 ### csv_imp1.file
 
-- 日付付きでboxに保存してある
-- 欠損処理, 特徴量抽出を実行したデータ(~_imp.csv)
-- 全てのテーブルを結合したデータ(all_data_train.csv,all_data_test,csv)
+- ~_imp.csv: 欠損処理, 特徴量抽出を実行したデータ
+- all_{train|test}.csv: 全てのテーブルを結合したデータ(
 
 ## data.file
 
@@ -110,6 +110,8 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 │   │   ├── previous_application.csv
 │   │   └── sample_submission.csv
 │   ├── csv_imp0
+│   │   ├── all_data_test.csv
+│   │   ├── all_data_train.csv
 │   │   ├── POS_CASH_balance.csv
 │   │   ├── application_test.csv
 │   │   ├── application_train.csv
