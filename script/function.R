@@ -5,6 +5,7 @@
 # dfSummarySplit: factor value -> numeric valueの順に変更して, dfSummary 関数を適用する
 # CheckBinaryColumn: binary value を factor type に変更する(連続値としての情報はない)
 # CheckCategoryColumn: uniqueな値が100(要考察)以下の場合, カテゴリカル変数とする
+# CheckColumnsNotInclude: data.frameの各列が"_add","_imp"を含んでいないことを確認する
 # ImputeMissingValueRF: Random Forest による欠損値補完
 # ImputeMissingValueRF: Multiple imputing による欠損値補完
 # MakeNewValueTSNE: Rstneによる特徴量作成関数
@@ -47,6 +48,13 @@ CheckCategoryColumn <- function(col){
   tmp <- col %>% na.omit() %>% unique()
   # check the binary
   if(length(tmp) < 100) return(TRUE)
+  else return(FALSE)
+}
+# CheckColumnsNotInclude
+CheckColumnsNotInclude <- function(data,patterns){
+  ind <- data %>%
+    select_if(str_detect(names(.),pattern = paste(patterns,collapse = "|"))) %>% NCOL 
+  if(ind == 0) return(TRUE)
   else return(FALSE)
 }
 
