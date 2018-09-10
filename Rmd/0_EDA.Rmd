@@ -92,6 +92,7 @@ library(janitor)
 
 ```{r}
 source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 ```
 
 ## Import csv
@@ -100,47 +101,46 @@ source('~/Desktop/Home_Credit_Kaggle/script/function.R') # for preprocessing
 - Define missing values: na = c("XNA","NA","","NaN","?",...)
 - Convert charcter's columns into factor's columns 
 - Delete duplicate column names and change them to lower case
-- Add keyword to all column names for each data: (_app,_bureau,_pre,_pos,_ins,_cre)
+- Add keyword to columns names for each data except for key columns: (_app,_bureau,_pre,_pos,_ins,_cre) 
 
 ```{r cache=TRUE}
 # 訓練データ, テストデータ
 app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_app",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_app",sep=""))
 app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_app",sep="")) 
-
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_app",sep=""))
 # クレジット利用履歴 (by Credit Bureau)
 bureau <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/bureau.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_bureau",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_bur",sep=""))
 bureau_balance <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/bureau_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_bureau",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_bur",sep=""))
 
 # 過去の利用データ
 previous_app <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/previous_application.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_pre",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_pre",sep=""))
 install_pay <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/installments_payments.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_ins",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_ins",sep=""))
 
 pos_cash <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/POS_CASH_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_pos",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_pos",sep=""))
 credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/credit_card_balance.csv",na = c("XNA","NA","","NaN","?")) %>% 
   mutate_if(is.character, funs(factor(.))) %>% 
   clean_names() %>% # change small letters
-  rename_all(. %>% tolower %>% str_c("_cre",sep="")) 
+  rename_if(!str_detect(names(.),"sk_id"),. %>% tolower %>% str_c("_cre",sep=""))
 
 # submit style file
 # sample_submission <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/sample_submission.csv")
@@ -149,7 +149,7 @@ credit_card <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv/credit_card_bala
 ## Export csv
 
 - Export modified data to `csv_imp0/~.csv`
-- not exeute
+- not execute
 
 ```{r eval=FALSE}
 write_csv(app_train, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_train.csv")
@@ -162,12 +162,32 @@ write_csv(pos_cash, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/POS_CASH_balanc
 write_csv(previous_app, "~/Desktop/Home_Credit_Kaggle/input/csv_imp0/previous_application.csv")
 ```
 
-# Explatory data analysis
+## Extract col names
+
+- not execute
+
+```{r eval=FALSE}
+tmp <- (app_train %>% head(0)) %>% 
+  cbind(bureau %>% head(0)) %>% 
+  cbind(bureau_balance %>% head(0)) %>% 
+  cbind(pos_cash %>% head(0)) %>% 
+  cbind(credit_card %>% head(0)) %>% 
+  cbind(previous_app %>% head(0)) %>%
+  cbind(install_pay %>% head(0)) %>% 
+  colnames() %>% data.frame(new = .) 
+write_csv(tmp,"~/Desktop/Home_Credit_Kaggle/data/new_column_names.csv")
+# tmp %>% filter(str_detect(new,"id"))
+```
+
+# Explatory Data Analysis
 
 - Check the data to confirm outliers and missing data 
 - Confirm relationship with target variables
 - Apply glimpse, skimr and dfsummary to the all data
-    
+- Check the data to confirm the uniqueness 
+- Confirm that "_add" and "_imp" are not included in the data
+- Make a simple combine data 
+
 ## Check missing values and outiers valules {.tabset .tabset-fade .tabset-pills}
 
 ### app_train
@@ -425,4 +445,69 @@ dfSummarySplit(pos_cash)
 
 ```{r cache=TRUE}
 dfSummarySplit(credit_card)
+```
+
+## Confirm that "_add" and "_imp" are not included in the data
+
+```{r}
+patterns <- c("_add","_imp")
+CheckColumnsNotInclude(app_train,patterns)
+CheckColumnsNotInclude(app_test,patterns)
+CheckColumnsNotInclude(bureau,patterns)
+CheckColumnsNotInclude(bureau_balance,patterns)
+CheckColumnsNotInclude(credit_card,patterns)
+CheckColumnsNotInclude(install_pay,patterns)
+CheckColumnsNotInclude(pos_cash,patterns)
+CheckColumnsNotInclude(previous_app,patterns)
+```
+
+## Make a simple combine data{.tabset .tabset-fade .tabset-pills}
+
+- Make a all_{train|test}.csv
+- Export modified data to `csv_imp0/all_{train|test}.csv`
+- Apply skimr and dfsummary to the all data
+
+### Make a combine data
+
+```{r cache=TRUE}
+bureau_sum <- makedummies(bureau_balance,basal_level = TRUE) %>% # make dummy
+  SummarizeFunc(group = "sk_id_bureau") %>%                  # summarize
+  left_join(bureau,.,by = "sk_id_bureau") %>% 
+  makedummies(basal_level = TRUE) %>% # make dummy
+  select(-sk_id_bureau) %>%                       # not need
+  SummarizeFunc(group = "sk_id_curr")             # summarize
+credit_card_sum <- makedummies(credit_card,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr") 
+install_pay_sum <- makedummies(install_pay,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr")
+pos_cash_sum <- makedummies(pos_cash,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr")
+previous_app_sum <- makedummies(previous_app,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr")
+
+all_data_train <- app_train %>% 
+  left_join(bureau_sum,by="sk_id_curr") %>% 
+  left_join(credit_card_sum,by = "sk_id_curr") %>% 
+  left_join(install_pay_sum,by = "sk_id_curr") %>% 
+  left_join(pos_cash_sum,by = "sk_id_curr") %>% 
+  left_join(previous_app_sum,by = "sk_id_curr")
+all_data_test <- app_test %>% 
+  left_join(bureau_sum,by="sk_id_curr") %>% 
+  left_join(credit_card_sum,by = "sk_id_curr") %>% 
+  left_join(install_pay_sum,by = "sk_id_curr") %>% 
+  left_join(pos_cash_sum,by = "sk_id_curr") %>% 
+  left_join(previous_app_sum,by = "sk_id_curr")
+```
+
+### Export
+
+- not execute
+
+```{r eval=FALSE}
+write_csv(all_data_train,"~/Desktop/Home_Credit_Kaggle/input/csv_imp0/all_data_train.csv")
+write_csv(all_data_test,"~/Desktop/Home_Credit_Kaggle/input/csv_imp0/all_data_test.csv")
 ```
