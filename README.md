@@ -2,6 +2,8 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Reference](#reference)
+  - [Technics](#technics)
 - [Flow Chart](#flow-chart)
 - [Home_Credit_Kaggle](#home_credit_kaggle)
   - [Rmd.file](#rmdfile)
