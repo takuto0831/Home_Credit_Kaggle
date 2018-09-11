@@ -18,6 +18,16 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+# Reference
+
+- [Kaggle:How to LightGBM with lightgbm.cv](https://www.kaggle.com/shep312/lightgbm-harder-better-slower/code)
+- [Python API](https://lightgbm.readthedocs.io/en/latest/Python-API.html)
+- [roc auc score](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html0)
+- [1st place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64821)
+- [2nd place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64722)
+
+## Technics
+
 # Flow Chart
 
 <img src="data/FlowChart.png" width="1000px">
@@ -38,21 +48,18 @@
 
 ## jn.file
 
-jupyter notebokによるメモ書き, kernel sessionに関する記述などをまとめておく
-
-- LightGBM.ipynb: lightgbmによる分析コードのまとめ
+- LightGBM.ipynb: lightgbm, cross validation, predict
 
 ## py.file
 
 ## script.file
  
-- function.R: 各関数の詳細を記述
-- makedummies.R: factor値をダミー変数化する関数
+- function.R: Descrive detail of functions
+- makedummies.R: Make factor values dummy variables 
 	 
 ## submit.file
 
-- ファイル名: [file_name] + [submit_date].csv
-- (file_name: データの詳細な構造, submit_data: 作成日)
+- file_name + submit_date.csv 
 
 ## input
 
@@ -62,24 +69,21 @@ jupyter notebokによるメモ書き, kernel sessionに関する記述などを�
 
 ### csv_imp0.file
 
-- ~.csv: 基本的な前処理を適用
-- all_{train|test}.csv: シンプルに全データを結合
+- {...}.csv: Apply basic preprocess
+- all_{train|test}.csv: Combine all tables
 
 ### csv_imp1.file
 
-- ~_imp.csv: 欠損処理, 特徴量抽出を実行したデータ
-- all_{train|test}.csv: 全てのテーブルを結合したデータ(
+- {...}_imp.csv: Complement missing values, Extract features
+- all_{train|test}.csv: Combine all tables
 
 ## data.file
 
 - xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
 - 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para_old_100.tsv)
 - train auc, test auc, LB score 等をメモ形式で保存(score_sheet.tsv)
-- Flowchart作成図(Flowchart.eddx, FlowChart.png)
-- about_column.numbers
-    - csv dataの各カラムの説明, およびメモ
-    - ROW name and memo (青色): 欠損値かつ無処理
-    - ROW name (青色): 欠損値かつ処理したカラムを追加済み
+- Flowchart.eddx, FlowChart.png:
+- about_column.numbers: Explain all table columns
     
 # Layered Directory
  
