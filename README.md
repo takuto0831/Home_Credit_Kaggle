@@ -82,7 +82,7 @@
 - xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
 - 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para_old_100.tsv)
 - train auc, test auc, LB score 等をメモ形式で保存(score_sheet.tsv)
-- Flowchart.eddx, FlowChart.png:
+- Flowchart.eddx, FlowChart.png: Illustrate the process chart
 - about_column.numbers: Explain all table columns
     
 # Layered Directory
