@@ -29,6 +29,7 @@
 - [2nd place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64722)
 - [many good technics (Japanese)](https://github.com/nyanp/kaggle-homecredit)
 - [Feather packege](https://blog.rstudio.com/2016/03/29/feather/)
+- [Encoding for categorical values](http://jotkn.ciao.jp/wp/2017/08/22/post-67/)
 
 ## Technics
 
@@ -36,7 +37,14 @@
 - A lot of features based on division and substraction from the application_train.csv
     - The most notable division was by EXT_SOURCE_3
 - The most important features that I engineered, in descending order of importance (measured by gain in the LGBM model)
-- Find data structure, understand column description, mannagement of the feature
+- *Find data structure, understand column description, mannagement of the feature*
+
+## Outlook
+
+- Use feather.file
+- Feature engineering by using script file
+- How to feature selection
+- Make feature.file
 
 # Flow Chart
 
@@ -89,9 +97,8 @@
 
 ## data.file
 
-- xgb.importanceにより効果のある特徴量を記録する(best_para.tsv)
-- 様々な特徴量を追加する前の優れた特徴量の記録, boxにおけるcsv_imp_0820データに実行(best_para_old_100.tsv)
-- train auc, test auc, LB score 等をメモ形式で保存(score_sheet.tsv)
+- best_para.tsv: recorded best features
+- score_sheet.tsv: train auc, test auc, LB score
 - Flowchart.eddx, FlowChart.png: Illustrate the process chart
 - about_column.numbers: Explain all table columns
     
