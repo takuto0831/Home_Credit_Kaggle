@@ -27,7 +27,8 @@
 - [roc auc score](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html0)
 - [1st place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64821)
 - [2nd place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64722)
-- [many good technic (Japanese)](https://github.com/nyanp/kaggle-homecredit)
+- [many good technics (Japanese)](https://github.com/nyanp/kaggle-homecredit)
+- [Feather packege](https://blog.rstudio.com/2016/03/29/feather/)
 
 ## Technics
 
