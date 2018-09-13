@@ -27,8 +27,15 @@
 - [roc auc score](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html0)
 - [1st place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64821)
 - [2nd place solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/64722)
+- [many good technic (Japanese)](https://github.com/nyanp/kaggle-homecredit)
 
 ## Technics
+
+- Important thing is good set of smart features and diverse set of base algorithms.
+- A lot of features based on division and substraction from the application_train.csv
+    - The most notable division was by EXT_SOURCE_3
+- The most important features that I engineered, in descending order of importance (measured by gain in the LGBM model)
+- Find data structure, understand column description, mannagement of the feature
 
 # Flow Chart
 
@@ -40,13 +47,13 @@
 
 - 0_EDA.Rmd: Checking data simply and searching problem
 - 1_Preprocess_app.Rmd: Preprocessing for application_{train|test}.csv
-- 1_Preprocess_bureau.Rmd: Preprocessing for bureau.csv and bureau_balance.csv
-- 1_Preprocess_pre_app.Rmd: Preprocessing for previous_applications.csv
-- 1_Preprocess_ins_pay.Rmd: Preprocessing for installments_payment.csv
-- 1_Preprocess_pos_cash.Rmd: Preprocessing for POS_CASH_balance.csv
-- 1_Preprocess_credit.Rmd: Preprocessing for credit_card_balance.csv
-- 2_Combine.Rmd: Combining all data and Checking for data
-- 3_XGBoost.Rmd: construct xgboost model, predict, make a submit file, search best features, parameter tune
+- 1_Preprocess_bureau.Rmd: Preprocessing for bureau.csv and bureau_balance.csv (not changed)
+- 1_Preprocess_pre_app.Rmd: Preprocessing for previous_applications.csv (not changed)
+- 1_Preprocess_ins_pay.Rmd: Preprocessing for installments_payment.csv (not changed)
+- 1_Preprocess_pos_cash.Rmd: Preprocessing for POS_CASH_balance.csv (not changed)
+- 1_Preprocess_credit.Rmd: Preprocessing for credit_card_balance.csv (not changed)
+- 2_Combine.Rmd: Combining all data and Checking for data (not changed)
+- 3_XGBoost.Rmd: construct xgboost model, predict, make a submit file, search best features, parameter tune (not changed)
 
 ## jn.file
 
