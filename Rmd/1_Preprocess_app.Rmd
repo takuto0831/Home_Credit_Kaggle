@@ -78,10 +78,10 @@ source('~/Desktop/Home_Credit_Kaggle/script/makedummies.R') # for preprocessing
 ```{r}
 # train data and test data
 app_train <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_train.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.))) %>% 
+  mutate_if(is.character, funs(factor(.))) 
   
 app_test <- read_csv("~/Desktop/Home_Credit_Kaggle/input/csv_imp0/application_test.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.))) %>% 
+  mutate_if(is.character, funs(factor(.)))
 ```
 
 # Preprocess
@@ -502,45 +502,33 @@ app_test <- app_test %>%
 
 - Add `_add` to the made new column
 
-### 
+### everything
 
 ```{r}
-app_train <- app_train %>% 
-  mutate(CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
-         CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE,
-         CREDIT_INCOME_PERC_add = AMT_CREDIT / AMT_INCOME_TOTAL,
-         INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
-         EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
-         OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
-         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / cnt_fam_members_app,
-         OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
-         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / cnt_fam_members_app,
-         PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
-         PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
-         CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
-         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / cnt_fam_members_app,
-         CNT_NON_CHILD_add = cnt_fam_members_app - CNT_CHILDREN,
-         INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
-         CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
-         )
-app_test <- app_test %>% 
-  mutate(CREDIT_ANNUITY_PERC_add = AMT_CREDIT / AMT_ANNUITY,
-         CREDIT_GOODS_PERC_add = AMT_CREDIT / AMT_GOODS_PRICE,
-         CREDIT_INCOME_PERC_add = AMT_CREDIT / AMT_INCOME_TOTAL,
-         INCOME_CHILDEREN_PERC_add = AMT_INCOME_TOTAL / (1 + CNT_CHILDREN),
-         EMPLOYED_BIRTH_PERC_add = DAYS_EMPLOYED / DAYS_BIRTH,
-         OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
-         CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / cnt_fam_members_app,
-         OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
-         INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / cnt_fam_members_app,
-         PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
-         PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
-         CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
-         CREDIT_MEMBERS_PERC_add = AMT_CREDIT / cnt_fam_members_app,
-         CNT_NON_CHILD_add = cnt_fam_members_app - CNT_CHILDREN,
-         INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
-         CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
-         )
+app_train <- app_train %>%
+  mutate(credit_annuity_perc_add = amt_credit_app/amt_annuity_app,
+         credit_goods_perc_add = amt_credit_app/amt_goods_price_app,
+         credit_income_perc_add = amt_credit_app / amt_income_total_app,
+         income_children_perc_add = amt_income_total_app / (1 + cnt_children_app),
+         empoloyed_birth_perc_add = days_employed_app / days_birth_app)
+app_test <- app_test %>%          
+  mutate(credit_annuity_perc_add = amt_credit_app/amt_annuity_app,
+         credit_goods_perc_add = amt_credit_app/amt_goods_price_app,
+         credit_income_perc_add = amt_credit_app / amt_income_total_app,
+         income_children_perc_add = amt_income_total_app / (1 + cnt_children_app),
+         empoloyed_birth_perc_add = days_employed_app / days_birth_app)
+          
+         # OWN_CAR_BIRTH_PERC_add = OWN_CAR_AGE / DAYS_BIRTH,
+         # CHILDREN_MEMBERS_PERC_add = CNT_CHILDREN / cnt_fam_members_app,
+         # OWN_CAR_EMPLOY_PERC_add = OWN_CAR_AGE / DAYS_EMPLOYED,
+         # INCOME_MEMBERS_PERC_add = AMT_INCOME_TOTAL / cnt_fam_members_app,
+         # PHONE_TO_BIRTH_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_BIRTH,
+         # PHONE_TO_EMPLOY_PERC_add = DAYS_LAST_PHONE_CHANGE / DAYS_EMPLOYED,
+         # CREDIT_CHILDEREN_PERC_add = AMT_CREDIT / (1 + CNT_CHILDREN),
+         # CREDIT_MEMBERS_PERC_add = AMT_CREDIT / cnt_fam_members_app,
+         # CNT_NON_CHILD_add = cnt_fam_members_app - CNT_CHILDREN,
+         # INCOME_NO_CHILD_PERC_add = AMT_INCOME_TOTAL / CNT_NON_CHILD_add,
+         # CREDIT_NO_CHILD_PERC_add = AMT_CREDIT / CNT_NON_CHILD_add 
 ```
 
 ### ext_source_{1,2,3}_app
