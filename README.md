@@ -4,6 +4,7 @@
 
 - [Reference](#reference)
   - [Technics](#technics)
+  - [Outlook](#outlook)
 - [Flow Chart](#flow-chart)
 - [Home_Credit_Kaggle](#home_credit_kaggle)
   - [Rmd.file](#rmdfile)
@@ -67,6 +68,7 @@
 ## jn.file
 
 - LightGBM.ipynb: lightgbm, cross validation, predict
+- NeuralNetwork.ipynb: neural network, predict
 
 ## py.file
 
@@ -156,7 +158,7 @@
 │   └── score_sheet.tsv
 ├── jn
 │   ├── LightGBM.ipynb 
-│   └── 
+│   └── NeuralNetwork.ipynb 
 ├── py
 │   ├──  
 │   └── 
