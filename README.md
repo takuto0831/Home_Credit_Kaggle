@@ -43,8 +43,8 @@
 
 - Use feather.file
 - Feature engineering by using script file
-- How to feature selection
-- Make feature.file
+- How to feature selection -> using LGBM importance ??
+- Using the predictive value of such regression as features
 
 # Flow Chart
 
